@@ -1,4 +1,4 @@
-# tree-snap-shot
+# clock-polling
 
 Comparison function of simple objects (objects that can be successfully restored by JSON.stringify/parse);
 

@@ -59,4 +59,4 @@ class Timer {
         })
     }
 }
-export default new Timer()
+export default Timer;
