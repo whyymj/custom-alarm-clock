@@ -4,14 +4,19 @@ import {
 } from './util/getTime.js'
 export default class ClockTask {
     timingTasks = {};
-    frequency = 1000 / 60;
+    taskIdx = 0;
+    stopId = {}
     constructor(Timer) {
         this.mainThread = (last, now, interval) => {
             now = now.getTime()
             for (let t in this.timingTasks) {
                 if (t <= now) {
-                    this.timingTasks[t].forEach(fun => {
-                        fun()
+                    this.timingTasks[t].forEach(item => {
+                        if (this.stopId[item.id]) {
+                            delete this.stopId[item.id];
+                        }else{
+                            item.callback()
+                        }
                     })
                     delete this.timingTasks[t]
                 }
@@ -22,10 +27,10 @@ export default class ClockTask {
             Timer.remove(this.mainThread);
         }
     }
-    addClockTask(callback, time = 0) {
+    add(callback, time = 0) {
         if (Array.isArray(time)) {
-            return time.forEach(item => {
-                return this.addClockTask(callback, item)
+            return time.map(item => {
+                return this.add(callback, item)
             })
         }
         let now = new Date().getTime();
@@ -41,11 +46,19 @@ export default class ClockTask {
             let clock = now + time;
             this.timingTasks[clock] = this.timingTasks[clock] || []
             if (typeof callback == 'function') {
-                this.timingTasks[clock].push(callback);
+                this.taskIdx++;
+                this.timingTasks[clock].push({
+                    id: this.taskIdx,
+                    callback
+                });
             } else if (Array.isArray(callback)) {
                 callback.forEach(fun => {
                     if (typeof fun == 'function') {
-                        this.timingTasks[clock].push(fun);
+                        this.taskIdx++;
+                        this.timingTasks[clock].push({
+                            id: this.taskIdx,
+                            callback: fun
+                        });
                     }
                 })
             }
@@ -53,5 +66,18 @@ export default class ClockTask {
         }
         throw new Error('invalid time')
     }
+    stopClock(ids) {
+        if (Array.isArray(ids)) {
+            ids.forEach(id => {
+                this.stopId[id] = 1
+            })
+        } else {
+            this.stopId[ids] = 1
+        }
+    }
+    stopAll(){
+        this.timingTasks = {};
+        this.stopId = {}
+    }
 
-} 
+}

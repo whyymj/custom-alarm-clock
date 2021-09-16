@@ -1,47 +1,44 @@
-const polling = require('./dist/index.js').polling;
-// let arr = []
-// for (let i = 0; i < 10; i++) {
+const clockPolling = require('./dist/index.js');
 
-//     arr.push(1000 * i)
-// }
-// clock.addClockTask(() => {
-//     console.log('clock ')
-// }, arr)
-// clock.addClockTask(() => {
-//     console.log('clock 10:44:30')
-// }, '2021/9/16 10:44:30')
-// clock.addClockTask(() => {
-//     console.log('clock 10:44:00')
+// clockPolling.addClock(() => {
+//     console.log('clock 3000')
+// }, 3000)
+// clockPolling.addClock(() => {
+//     console.log('clock 17:55:00')
+// }, '2021/9/16 17:55:00')
+
+
+
+// let count1 = 0
+// let task1 = clockPolling.addPolling((end) => {
+//     console.log('1 >>>');
+//     count1++;
+//     setTimeout(end, 100)
 // }, {
-//     year: -1,
-//     month: -1,
-//     day: -1,
-//     hour: 10,
-//     min: 44,
-//     sec: 59,
-//     msec: 0
+//     times: 10,
+//     manual: true,
+//     cycle: 10000
+// });
+
+// let count2 = 0
+// let task2 = clockPolling.addPolling((end) => {
+//     console.log('2 >>>');
+//     count2++;
+//     if (count2 > 3) {
+//         clockPolling.stop(task2)
+//     }
+//     setTimeout(end, 100)
+// }, {
+//     manual: true,
+//     cycle: 10000,
+//     immediate: true,
 // })
+let count=0;
 
-
-
-polling.addPollingTask((end)=>{
-    console.log('2 >>>')
-    setTimeout(()=>{
-        end()
-    },1000)
-},{
-    manual:true,
-    cycle:1000
-});
-console.log('???????')
-
-polling.addPollingTask((end)=>{
-    console.log('1 >>>')
-    setTimeout(()=>{
-        end()
-    })
-},{
-    manual:true,
-    cycle:2000
-})
-console.log('!!!!!!!!')
+let task=clockPolling.addClockPolling(() => {
+    count++;
+    if(count>10){
+        clockPolling.stop(task)
+    }
+    console.log('!!!!!!!!!!!!!',count)
+}, 2000)

@@ -2,10 +2,11 @@ export default class PollingTask {
     tasks = {};
     tasksIdx = 0;
     manualEndTasks = {}; //手动确认结束任务
+    seize = {}
     constructor(Timer) {
         this.mainThread = (last, now, interval) => {
             for (let k in this.tasks) {
-                let item = this.tasks[k];
+                let item = this.tasks[k] || {};
                 if (item.times > 0) {
                     if (item.left > interval) {
                         item.left = item.left - interval;
@@ -28,15 +29,50 @@ export default class PollingTask {
             this.Timer.remove(this.mainThread);
         }
     }
-
-    addPollingTask(callback, option = 0) {
+    setSeize(callback, option = 0) {
         if (Array.isArray(option)) {
-            return option.forEach(item => {
-                this.addPollingTask(callback, item)
+            return option.map(item => {
+                return this.setSeize(callback, item)
+            })
+        }
+        this.tasksIdx++;
+        this.seize[this.tasksIdx] = this.setOption(callback, option);
+        return this.tasksIdx
+    }
+    addSeize(ids) {
+        if (!Array.isArray(ids)) {
+            ids = [ids]
+        }
+        ids.forEach(id => {
+            this.tasks[id] = this.seize[id];
+            delete this.seize[id];
+        })
+    }
+    add(callback, option = 0) {
+        if (Array.isArray(option)) {
+            return option.map(item => {
+                return this.add(callback, item)
             })
         }
         this.tasksIdx++;
         this.tasks[this.tasksIdx] = this.setOption(callback, option);
+        return this.tasksIdx
+    }
+    stopPolling(ids) {
+        if (!Array.isArray(ids)) {
+            ids = [ids]
+        }
+        ids.forEach(id => {
+            if (this.manualEndTasks[id]) {
+                this.manualEndTasks[id].times = 0
+            }
+            if (this.tasks[id]) {
+                this.tasks[id].times = 0
+            }
+            if (this.seize[id]) {
+                this.seize[id].times = 0
+            }
+        })
     }
     setOption(callback, option = 0) {
         if (typeof callback === 'function') {
@@ -50,19 +86,17 @@ export default class PollingTask {
             cycle: 0, //循环周期ms
             times: Infinity, //重复次数
             immediate: false, //立即执行
-            left: 0, //下次剩余时间
-            lastTime: 0, //上次时间
             manual: false,
         };
         if (typeof option === 'number' && option === option) {
             options.cycle = option;
-            options.left = options.immediate ? 0 : option;
         } else if (typeof option === 'object') {
             options = {
                 ...options,
                 ...option,
             }
         }
+        options.left = options.immediate ? 0 : option.cycle; //下次剩余时间
         options.callback = callback;
         options.id = this.tasksIdx
         options.start = () => {
@@ -74,7 +108,11 @@ export default class PollingTask {
             delete this.manualEndTasks[options.id];
             options.times--;
         } : () => {}
-        
-        return options; 
+
+        return options;
+    }
+    stopAll() {
+        this.tasks = {};
+        this.manualEndTasks = {}; //手动确认结束任务
     }
 }
