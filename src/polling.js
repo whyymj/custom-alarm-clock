@@ -1,23 +1,63 @@
+class Task {
+    cycle = 0 //循环周期ms
+    times = Infinity //重复次数
+    immediate = false //立即执行
+    manual = false
+    suspending = false
+    id = '';
+    callback = []
+    left = 0; //下次剩余时间
+    constructor(callback, option) {
+        if (typeof callback === 'function') {
+            this.callback = [callback];
+        }
+        this.set(option)
+    }
+    set(option) {
+        if (typeof option === 'number' && option === option) {
+            this.cycle = option;
+        } else if (typeof option === 'object') {
+            let keys = ['cycle', 'times', 'manual', 'immediate', 'suspending'];
+            for (let k in option) {
+                if (option[k] !== undefined && keys.includes(k)) {
+                    this[k] = option[k];
+                }
+            }
+        }
+        this.left = this.immediate ? 0 : this.cycle;
+
+    }
+}
+
+function idle() {
+    console.warn('需要开启手动模式')
+}
 export default class PollingTask {
     tasks = {};
     tasksIdx = 0;
-    manualEndTasks = {}; //手动确认结束任务
-    seize = {}
+    idleProcess = {}; //手动确认结束任务
     constructor(Timer) {
         this.mainThread = (last, now, interval) => {
             for (let k in this.tasks) {
-                let item = this.tasks[k] || {};
-                if (item.times > 0) {
-                    if (item.left > interval) {
-                        item.left = item.left - interval;
+                let task = this.tasks[k];
+                // if(!task){
+                //     continue;
+                // }
+                if (task.suspending) {
+                    continue;
+                }
+                if (task.times > 0) {
+                    if (task.left > interval) {
+                        task.left = task.left - interval;
                     } else {
-                        item.left = item.cycle;
-                        if (item.manual) {
-                            item.start();
+                        task.left = task.cycle;
+                        if (task.manual) {
+                            this.idleProcess[k] = options;
+                            delete this.tasks[k];
                         } else {
-                            item.times--;
+                            task.times--;
                         }
-                        item.callback.forEach(fun => fun(item.end));
+                        task.callback.forEach(fun => fun(task.next));
                     }
                 } else {
                     delete this.tasks[k];
@@ -29,25 +69,6 @@ export default class PollingTask {
             this.Timer.remove(this.mainThread);
         }
     }
-    setSeize(callback, option = 0) {
-        if (Array.isArray(option)) {
-            return option.map(item => {
-                return this.setSeize(callback, item)
-            })
-        }
-        this.tasksIdx++;
-        this.seize[this.tasksIdx] = this.setOption(callback, option);
-        return this.tasksIdx
-    }
-    addSeize(ids) {
-        if (!Array.isArray(ids)) {
-            ids = [ids]
-        }
-        ids.forEach(id => {
-            this.tasks[id] = this.seize[id];
-            delete this.seize[id];
-        })
-    }
     add(callback, option = 0) {
         if (Array.isArray(option)) {
             return option.map(item => {
@@ -55,64 +76,93 @@ export default class PollingTask {
             })
         }
         this.tasksIdx++;
-        this.tasks[this.tasksIdx] = this.setOption(callback, option);
+        if (option ?.suspending) {
+            this.idleProcess[this.tasksIdx] = this.setOption(callback, option);
+        } else {
+            this.tasks[this.tasksIdx] = this.setOption(callback, option);
+        }
+
         return this.tasksIdx
     }
-    stopPolling(ids) {
-        if (!Array.isArray(ids)) {
-            ids = [ids]
+    reset(ids, option = 0) {
+        this.find(ids).map(item => {
+            if (item) {
+                item.set(option);
+                if (item.suspending) {
+                    item.suspend()
+                }
+            }
+        });
+    }
+    find(ids) {
+        if (Array.isArray(ids)) {
+            return ids.map(id => {
+                return this.find(id);
+            }).flat(Infinity).filter(Boolean)
         }
-        ids.forEach(id => {
-            if (this.manualEndTasks[id]) {
-                this.manualEndTasks[id].times = 0
-            }
-            if (this.tasks[id]) {
-                this.tasks[id].times = 0
-            }
-            if (this.seize[id]) {
-                this.seize[id].times = 0
-            }
-        })
+        return [this.tasks[ids] || this.idleProcess[ids]]
     }
     setOption(callback, option = 0) {
-        if (typeof callback === 'function') {
-            callback = [callback];
-        } else if (Array.isArray(callback)) {
-            callback = callback.filter(fun => typeof fun === 'function');
-        } else {
-            return;
-        }
-        let options = {
-            cycle: 0, //循环周期ms
-            times: Infinity, //重复次数
-            immediate: false, //立即执行
-            manual: false,
+        let task = new Task(callback, option);
+        task.id = this.tasksIdx;
+        task.continue = () => {
+            task.suspending = false;
+            this.tasks[task.id] = task;
+            delete this.idleProcess[task.id];
         };
-        if (typeof option === 'number' && option === option) {
-            options.cycle = option;
-        } else if (typeof option === 'object') {
-            options = {
-                ...options,
-                ...option,
+        task.suspend = () => {
+            task.suspending = true;
+            this.idleProcess[task.id] = task;
+            delete this.tasks[task.id];
+        };
+        task.stop = () => {
+            if (this.idleProcess[task.id]) {
+                this.idleProcess[task.id].times = 0
             }
+            if (this.tasks[task.id]) {
+                this.tasks[task.id].times = 0
+            }
+        };
+        task.next = task.manual ? () => {
+            this.tasks[task.id] = this.idleProcess[task.id] ? this.idleProcess[task.id] : this.tasks[task.id];
+            delete this.idleProcess[task.id];
+            task.times--;
+        } : idle;
+        if (task.suspending) {
+            task.suspend()
         }
-        options.left = options.immediate ? 0 : option.cycle; //下次剩余时间
-        options.callback = callback;
-        options.id = this.tasksIdx
-        options.start = () => {
-            this.manualEndTasks[options.id] = options;
-            delete this.tasks[options.id];
-        }
-        options.end = options.manual ? () => {
-            this.tasks[options.id] = this.manualEndTasks[options.id];
-            delete this.manualEndTasks[options.id];
-            options.times--;
-        } : () => {}
+        return task;
+    }
 
-        return options;
+
+    continue (ids) {
+        this.find(ids).forEach(task => {
+            task.continue()
+        })
+    }
+    continueAll() {
+        this.continue(this.find([...Object.keys(this.tasks), ...Object.keys(this.idleProcess)]))
+    }
+    suspend(ids) {
+        this.find(ids).forEach(task => {
+            task.suspend()
+        })
+    }
+    suspendAll() {
+        this.suspend(this.find([...Object.keys(this.tasks), ...Object.keys(this.idleProcess)]))
+    }
+    stop(ids) {
+        this.find(ids).forEach(task => {
+            task.stop()
+        })
     }
     stopAll() {
         this.tasks = {};
-        this.manualEndTasks = {}; //手动确认结束任务
+        this.idleProcess = {}; //手动确认结束任务
+    }
+    next(ids) {
+        this.find(ids).forEach(task => {
+            task.next()
+        })
     }
 }

@@ -10,25 +10,82 @@ class ClockPolling {
         this.clock = new Clock(this.timer);
         this.polling = new Polling(this.timer);
     }
-    stop(id) {
-        if (typeof id == 'object') {
-            this.clock.stopClock(id.clock);
-            this.polling.stopPolling(id.polling);
+    clear(task) {
+        if (typeof task == 'object') {
+            if (task.clear) {
+                task.clear();
+            } 
         }
     }
-    addClock(callback, options) {
+    clearAll(){
+        this.clock.stopAll();
+        this.polling.stopAll()
+    }
+    suspend(task) {
+        if (typeof task == 'object') {
+            if (task.suspend) {
+                task.suspend();
+            } 
+        }
+    }
+    suspendAll() {
+        this.clock.suspendAll();
+        this.polling.suspendAll();
+    }
+    continue(task) {
+        if(task.clock){
+            this.clock.continue(task.clock)
+        }
+        if(task.polling){
+            this.polling.continue(task.polling)
+        }
+    }
+    continueAll(){
+        this.clock.continueAll();
+        this.polling.continueAll();
+    }
+    setTimeout(callback, options) { //setTimeout 
         let that = this;
+        let task = this.clock.add(callback, options) 
         return {
-            clock: that.clock.add(callback, options)
-        }
+            clock: task,
+            clear() {
+                that.clock.stop(task);
+            },
+            suspend() {
+                that.clock.suspend(task);
+            },
+            continue () {
+                that.clock.continue(task);
+            },
+            reset(options) {
+                that.clock.reset(task, options);
+            }
+        };
     }
-    addPolling(callback, options) {
+    setInterval(callback, options) { //setInterval 
         let that = this;
+        let task = this.polling.add(callback, options)
         return {
-            polling: that.polling.add(callback, options)
+            polling: task,
+            clear() {
+                that.polling.stop(task);
+            },
+            suspend() {
+                that.polling.suspend(task);
+            },
+            continue () {
+                that.polling.continue(task);
+            },
+            reset(options) {
+                that.polling.reset(task, options);
+            }
         }
     }
-    addClockPolling(callback, options) {
+    setClock(callback, options) {
+        if(typeof callback !== 'function') {
+            throw new Error('need callback')
+        }
         let id = {}
         let that = this;
 
@@ -54,18 +111,48 @@ class ClockPolling {
         if (defaultOption.immediate) {
             callback()
         }
-        id['polling'] = that.polling.setSeize(callback, {
+        id['polling'] = that.polling.add(callback, {
             ...defaultOption,
             immediate: true,
+            suspending: true
         })
         id['clock'] = that.clock.add(() => {
-            that.polling.addSeize(id['polling'])
+            that.polling.continue(id['polling'])
         }, defaultOption.start)
-        return id
-    }
-    stopAll() {
-        this.clock.stopAll();
-        this.polling.stopAll();
+        return {
+            clock:id['clock'],
+            polling:id['polling'],
+            clear() {
+                that.clock.stop(id.clock);
+                that.polling.stop(id.polling)
+            },
+            suspend(){
+                that.clock.suspend(id.clock);
+                that.polling.suspend(id.polling)
+            },
+            continue(){
+                that.clock.continue(id.clock);
+                that.polling.continue(id.polling)
+            },
+            reset(option){
+                if(typeof option === 'object'){
+                    if(option.start!==undefined){
+                        that.clock.reset(option.start);
+                    }
+                    
+                    that.polling.reset(option)
+                }else{
+                    throw new TypeError(`only object:
+                        {start: 0,//start time
+                        cycle: 0, //循环周期ms
+                        times: Infinity, //repeat 次数
+                        immediate: false, //立即执行
+                        manual: false,//手动开始下一次轮询
+                    }`)
+                }
+               
+            }
+        }
     }
 
 }
@@ -79,9 +166,13 @@ let clock_polling = new ClockPolling();
         (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.clock_polling = {}));
 }(this, (function (exports) {
     exports.default = clock_polling;
-    exports.addClock = clock_polling.addClock.bind(clock_polling);
-    exports.addPolling = clock_polling.addPolling.bind(clock_polling);
-    exports.addClockPolling = clock_polling.addClockPolling.bind(clock_polling);
-    exports.stopAll = clock_polling.stopAll.bind(clock_polling);
-    exports.stop = clock_polling.stop.bind(clock_polling);
+    exports.setTimeout = clock_polling.setTimeout.bind(clock_polling);
+    exports.setInterval = clock_polling.setInterval.bind(clock_polling);
+    exports.setClock = clock_polling.setClock.bind(clock_polling);
+    exports.clear = clock_polling.clear.bind(clock_polling);
+    exports.clearAll = clock_polling.clearAll.bind(clock_polling);
+    exports.suspend = clock_polling.suspend.bind(clock_polling);
+    exports.suspendAll = clock_polling.suspendAll.bind(clock_polling);
+    exports.continue = clock_polling.continue.bind(clock_polling);
+    exports.continueAll = clock_polling.continueAll.bind(clock_polling);
 })))
