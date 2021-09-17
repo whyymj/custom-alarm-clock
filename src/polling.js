@@ -5,11 +5,15 @@ class Task {
     manual = false
     suspending = false
     id = '';
+    count = 0;
+    nextCount = 0;
     callback = []
     left = 0; //下次剩余时间
     constructor(callback, option) {
         if (typeof callback === 'function') {
-            this.callback = [callback];
+            this.callback = [callback, () => {
+                this.count++
+            }];
         }
         this.set(option)
     }
@@ -52,12 +56,12 @@ export default class PollingTask {
                     } else {
                         task.left = task.cycle;
                         if (task.manual) {
-                            this.idleProcess[k] = options;
+                            this.idleProcess[k] = task;
                             delete this.tasks[k];
                         } else {
                             task.times--;
                         }
-                        task.callback.forEach(fun => fun(task.next));
+                        task.callback.forEach(fun => fun());
                     }
                 } else {
                     delete this.tasks[k];
@@ -124,9 +128,14 @@ export default class PollingTask {
             }
         };
         task.next = task.manual ? () => {
-            this.tasks[task.id] = this.idleProcess[task.id] ? this.idleProcess[task.id] : this.tasks[task.id];
-            delete this.idleProcess[task.id];
-            task.times--;
+            console.log('?????',task.count , task.nextCount)
+            if (task.count != task.nextCount||!task.count) {
+                this.tasks[task.id] = this.idleProcess[task.id] ? this.idleProcess[task.id] : this.tasks[task.id];
+                delete this.idleProcess[task.id];
+                task.times--;
+                task.nextCount = task.count;
+            }
+
         } : idle;
         if (task.suspending) {
             task.suspend()

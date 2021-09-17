@@ -14,10 +14,10 @@ class ClockPolling {
         if (typeof task == 'object') {
             if (task.clear) {
                 task.clear();
-            } 
+            }
         }
     }
-    clearAll(){
+    clearAll() {
         this.clock.stopAll();
         this.polling.stopAll()
     }
@@ -25,65 +25,72 @@ class ClockPolling {
         if (typeof task == 'object') {
             if (task.suspend) {
                 task.suspend();
-            } 
+            }
         }
     }
     suspendAll() {
         this.clock.suspendAll();
         this.polling.suspendAll();
     }
-    continue(task) {
-        if(task.clock){
+    continue (task) {
+        if (task.clock) {
             this.clock.continue(task.clock)
         }
-        if(task.polling){
+        if (task.polling) {
             this.polling.continue(task.polling)
         }
     }
-    continueAll(){
+    continueAll() {
         this.clock.continueAll();
         this.polling.continueAll();
     }
     setTimeout(callback, options) { //setTimeout 
         let that = this;
-        let task = this.clock.add(callback, options) 
-        return {
-            clock: task,
+        let task = {}
+        let taskIds = this.clock.add(() => callback(task), options)
+        Object.assign(task, {
+            clock: taskIds,
             clear() {
-                that.clock.stop(task);
+                that.clock.stop(taskIds);
             },
             suspend() {
-                that.clock.suspend(task);
+                that.clock.suspend(taskIds);
             },
             continue () {
-                that.clock.continue(task);
+                that.clock.continue(taskIds);
             },
             reset(options) {
-                that.clock.reset(task, options);
+                that.clock.reset(taskIds, options);
             }
-        };
+        })
+        return task;
     }
     setInterval(callback, options) { //setInterval 
         let that = this;
-        let task = this.polling.add(callback, options)
-        return {
-            polling: task,
+        let task = {}
+        let taskIds = this.polling.add(callback, options)
+        Object.assign(task, {
+            polling: taskIds,
             clear() {
-                that.polling.stop(task);
+                that.polling.stop(taskIds);
             },
             suspend() {
-                that.polling.suspend(task);
+                that.polling.suspend(taskIds);
             },
             continue () {
-                that.polling.continue(task);
+                that.polling.continue(taskIds);
             },
             reset(options) {
-                that.polling.reset(task, options);
+                that.polling.reset(taskIds, options);
+            },
+            next() {
+                that.polling.next(taskIds);
             }
-        }
+        })
+        return task
     }
     setClock(callback, options) {
-        if(typeof callback !== 'function') {
+        if (typeof callback !== 'function') {
             throw new Error('need callback')
         }
         let id = {}
@@ -108,10 +115,10 @@ class ClockPolling {
         } else if (typeof options == 'boolean') {
             defaultOption.manual = options;
         }
-        if (defaultOption.immediate) {
-            callback()
-        }
-        id['polling'] = that.polling.add(callback, {
+        let task = {}
+
+
+        id['polling'] = that.polling.add(() => callback(task), {
             ...defaultOption,
             immediate: true,
             suspending: true
@@ -119,29 +126,33 @@ class ClockPolling {
         id['clock'] = that.clock.add(() => {
             that.polling.continue(id['polling'])
         }, defaultOption.start)
-        return {
-            clock:id['clock'],
-            polling:id['polling'],
+
+        Object.assign(task, {
+            clock: id['clock'],
+            polling: id['polling'],
+            next() {
+                that.polling.next(id.polling);
+            },
             clear() {
                 that.clock.stop(id.clock);
                 that.polling.stop(id.polling)
             },
-            suspend(){
+            suspend() {
                 that.clock.suspend(id.clock);
                 that.polling.suspend(id.polling)
             },
-            continue(){
+            continue () {
                 that.clock.continue(id.clock);
                 that.polling.continue(id.polling)
             },
-            reset(option){
-                if(typeof option === 'object'){
-                    if(option.start!==undefined){
+            reset(option) {
+                if (typeof option === 'object') {
+                    if (option.start !== undefined) {
                         that.clock.reset(option.start);
                     }
-                    
+
                     that.polling.reset(option)
-                }else{
+                } else {
                     throw new TypeError(`only object:
                         {start: 0,//start time
                         cycle: 0, //循环周期ms
@@ -150,9 +161,13 @@ class ClockPolling {
                         manual: false,//手动开始下一次轮询
                     }`)
                 }
-               
+
             }
+        })
+        if (defaultOption.immediate) {
+            callback(task)
         }
+        return task
     }
 
 }
