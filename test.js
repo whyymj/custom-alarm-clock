@@ -33,35 +33,23 @@ const clockPolling = require('./dist/index.js');
 //     cycle: 10000,
 //     immediate: true,
 // })
-let count = 0;
 
-// let task=clockPolling.setClock(() => {
-//     count++;
-//     if(count>5){
-//         task.suspend()
-//         console.log('!!!!!!! task1 suspend !!!!!!')
-//     }
-//     console.log('!!!!!!!!!!!!! task1',count)
-// }, {
-//     cycle:1000,
-// })
+
+let task=clockPolling.setClock(() => {
+  
+        console.log('!!!!!!! task1  !!!!!!')
+}, {
+    cycle:1000,
+    times:3,
+})
 
 let task2 = clockPolling.setClock((task) => {
-    count++;
-    if(count>5){
-        // task.suspend();
-    }
-    task.next()
-    console.log('!!!!!!!!!!!!! task2', count)
-}, {
-    start: 1000,
-    cycle: 1000,
-    times: 5,
-    immediate: true,
-    manual: true
-})
-setTimeout(() => {
-    // task2.continue()
-    console.log('!+++task2')
 
-}, 10000)
+    console.log('!!!!!!!!!!!!! task2', new Date())
+}, { 
+    start:'2021/9/18 18:26:01',
+    cycle: 2000,
+    times:3,
+    immediate: true,
+    // manual: true
+}) 

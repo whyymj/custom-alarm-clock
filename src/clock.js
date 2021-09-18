@@ -1,9 +1,10 @@
 import {
     yMdhms,
 } from './util/getTime.js'
+import Task from './util/task.js'
 
 function analysizeTime(time = 0) {
-    if(typeof time == 'object'&&time.start){
+    if (typeof time == 'object' && time.start) {
         return analysizeTime(time.start)
     }
     if (typeof time == 'string') {
@@ -12,12 +13,23 @@ function analysizeTime(time = 0) {
         time = time.getTime();
     } else if (typeof time == 'object') {
         time = yMdhms(time.year, time.month, time.day, time.hour, time.min, time.sec, time.msec).getTime();
-    } else if(typeof time == 'number'){
-        time = new Date().getTime()+time
+    } else if (typeof time == 'number') {
+        time = new Date().getTime() + time
     }
     return time;
 }
-export default class ClockTask {
+class ClockTask extends Task {
+    clock;
+    callback;
+    name;
+    runtime=0
+    constructor(callback, time) {
+        super(callback, time);
+        this.clock =  time;
+        this.callback = callback;
+    }
+}
+export default class Clock {
     timingTasks = {};
     taskIdx = 0;
     suspendId = {};
@@ -44,28 +56,26 @@ export default class ClockTask {
             Timer.remove(this.mainThread);
         }
     }
-    add(callback, time = 0) {
-        if (Array.isArray(time)) {
-            return time.map(item => {
+    add(callback, option = 0) {
+        if (Array.isArray(option)) {
+            return option.map(item => {
                 return this.add(callback, item)
             })
-        }
-        let now = new Date().getTime();
-        time = analysizeTime(time) - now;
-        let ids = []
+        } 
+        let time = analysizeTime(option);
+        let ids = [];
         if (typeof time === 'number' && time === time) {
-            let clock = now + time;
-            this.timingTasks[clock] = this.timingTasks[clock] || []
             if (typeof callback == 'function') {
-                this.taskIdx++;
-                ids.push(this.taskIdx)
-                this.timingTasks[clock].push({
-                    id: this.taskIdx,
-                    clock,
-                    callback
-                });
+                let task = new ClockTask(callback, time); 
+                if(option.name!==undefined){
+                    task.name=option.name;
+                }
+                this.timingTasks[task.clock] = this.timingTasks[task.clock] || []
+                ids.push(task.id)
+                this.timingTasks[task.clock].push(task);
             }
         }
+         
         return ids
     }
     find(ids) {
@@ -81,17 +91,11 @@ export default class ClockTask {
                 return [item];
             }
         }
-
+        return []
     }
-    reset(ids, time = 0) {
-        time = analysizeTime(time);
-        this.find(ids).map(item => {
-            let now = new Date().getTime();
-            let clock = now + time;
-            delete this.timingTasks[item.clock];
-            item.clock = clock;
-            this.timingTasks[clock] = item;
-        })
+    reset(ids, callback, time = 0) {
+        this.stop(ids);
+        return this.add(callback, time)
     }
     stop(ids) {
         this.find(ids).forEach(item => {

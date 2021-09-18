@@ -1,6 +1,30 @@
 import Clock from './clock'
 import Polling from './polling'
 import Timer from './util/timer.js'
+
+function getDefaultOption(options) {
+    let defaultOption = {
+        start: 0,
+        cycle: 0, //循环周期ms
+        times: Infinity, //重复次数
+        immediate: false, //立即执行
+        manual: false
+    }
+    if (typeof options == 'object') {
+        defaultOption = {
+            ...defaultOption,
+            ...options
+        }
+    } else if (typeof options == 'number' && options === options) {
+        defaultOption.cycle = options;
+    } else if (typeof options == 'string') {
+        defaultOption.start = options;
+    } else if (typeof options == 'boolean') {
+        defaultOption.manual = options;
+    }
+    return defaultOption;
+}
+
 class ClockPolling {
     clock = null;
     polling = null;
@@ -50,6 +74,11 @@ class ClockPolling {
         let taskIds = this.clock.add(() => callback(task), options)
         Object.assign(task, {
             clock: taskIds,
+            callback,
+            options,
+            check(){
+                return that.clock.find(taskIds)
+            },
             clear() {
                 that.clock.stop(taskIds);
             },
@@ -59,8 +88,8 @@ class ClockPolling {
             continue () {
                 that.clock.continue(taskIds);
             },
-            reset(options) {
-                that.clock.reset(taskIds, options);
+            reset(option) {
+                taskIds = that.clock.reset(taskIds, callback, option === undefined ? options : option);
             }
         })
         return task;
@@ -71,6 +100,11 @@ class ClockPolling {
         let taskIds = this.polling.add(callback, options)
         Object.assign(task, {
             polling: taskIds,
+            callback,
+            options,
+            check(){
+                return that.polling.find(taskIds)
+            },
             clear() {
                 that.polling.stop(taskIds);
             },
@@ -80,8 +114,8 @@ class ClockPolling {
             continue () {
                 that.polling.continue(taskIds);
             },
-            reset(options) {
-                that.polling.reset(taskIds, options);
+            reset(option) {
+                taskIds = that.polling.reset(taskIds, callback, option === undefined ? options : option);
             },
             next() {
                 that.polling.next(taskIds);
@@ -89,47 +123,42 @@ class ClockPolling {
         })
         return task
     }
+    getClockIds(callback, options) {
+
+        let id = {}
+        id['polling'] = this.polling.add(callback, {
+            absolute: false,
+            ...options,
+            immediate: true,
+            suspending: true,
+        })
+        id['clock'] = this.clock.add(() => {
+            this.polling.continue(id['polling'])
+        }, options.start)
+        return id
+    }
     setClock(callback, options) {
         if (typeof callback !== 'function') {
             throw new Error('need callback')
         }
-        let id = {}
+        let task = {}
+        let defaultOption = getDefaultOption(options);
+        let id = this.getClockIds(() => callback(task), defaultOption);
         let that = this;
 
-        let defaultOption = {
-            start: 0,
-            cycle: 0, //循环周期ms
-            times: Infinity, //重复次数
-            immediate: false, //立即执行
-            manual: false
-        }
-        if (typeof options == 'object') {
-            defaultOption = {
-                ...defaultOption,
-                ...options
-            }
-        } else if (typeof options == 'number' && options === options) {
-            defaultOption.cycle = options;
-        } else if (typeof options == 'string') {
-            defaultOption.start = options;
-        } else if (typeof options == 'boolean') {
-            defaultOption.manual = options;
-        }
-        let task = {}
 
-
-        id['polling'] = that.polling.add(() => callback(task), {
-            ...defaultOption,
-            immediate: true,
-            suspending: true
-        })
-        id['clock'] = that.clock.add(() => {
-            that.polling.continue(id['polling'])
-        }, defaultOption.start)
 
         Object.assign(task, {
             clock: id['clock'],
             polling: id['polling'],
+            callback,
+            options,
+            check(){
+                return {
+                    polling:that.polling.find(id.polling),
+                    clock:that.clock.find(id.clock),
+                }
+            },
             next() {
                 that.polling.next(id.polling);
             },
@@ -146,6 +175,9 @@ class ClockPolling {
                 that.polling.continue(id.polling)
             },
             reset(option) {
+                if(option===undefined) {
+                    option=options;
+                }
                 if (typeof option === 'object') {
                     if (option.start !== undefined) {
                         that.clock.reset(option.start);
