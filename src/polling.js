@@ -12,8 +12,7 @@ class PollingTask extends Task {
     tasks = []
     yieldIdx = 0;
     nextTime = 0;
-    left = 0; //下次剩余时间 
-    waiting=0;
+    left = 0; //下次剩余时间
     constructor(task, option) {
         super(task, option);
         this.set(option);
@@ -75,10 +74,8 @@ class PollingTask extends Task {
     }
     nextStep(callback) {
         if(this.left>0){
-            this.waiting=1;
             return;
         }
-        this.waiting=0;
         callback&&callback();
         if (this.yieldIdx < this.tasks.length) {
             this.tasks[this.yieldIdx]();
@@ -90,9 +87,7 @@ class PollingTask extends Task {
     }
     run() {
         if (this.manual) {
-            if(this.waiting){
-                this.nextStep();
-            }
+            this.nextStep();
             return
         } else {
             this.tasks.forEach(fun => fun());

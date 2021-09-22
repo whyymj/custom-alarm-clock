@@ -33,7 +33,9 @@
     "build": "webpack"
   },
   "keywords": [
-    
+    "requestAnimationFrame",
+    "setTimeout",
+    "setInterval"
   ],
   "author": "wuhao",
   "license": "ISC",

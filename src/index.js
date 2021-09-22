@@ -7,7 +7,7 @@ function getDefaultOption(options) {
     let defaultOption = {
         start: 0,
         cycle: 0, //循环周期ms
-        count: Infinity, //重复次数
+        count: 1, //重复次数
         immediate: false, //立即执行
         manual: false
     }
