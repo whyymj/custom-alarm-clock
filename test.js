@@ -15,7 +15,7 @@ const clockPolling = require('./dist/index.js');
 //     count1++;
 //     setTimeout(end, 100)
 // }, {
-//     times: 10,
+//     count: 10,
 //     manual: true,
 //     cycle: 10000
 // });
@@ -33,23 +33,34 @@ const clockPolling = require('./dist/index.js');
 //     cycle: 10000,
 //     immediate: true,
 // })
+let callbacks = [];
+for (let i = 0; i < 10; i++) callbacks.push(() => console.log('time out ' + i))
 
-
-let task=clockPolling.setClock(() => {
-  
-        console.log('!!!!!!! task1  !!!!!!')
-}, {
-    cycle:1000,
-    times:3,
-})
-
-let task2 = clockPolling.setClock((task) => {
-
-    console.log('!!!!!!!!!!!!! task2', new Date())
-}, { 
-    start:'2021/9/18 18:26:01',
+// clockPolling.setTimeout(callbacks,{
+//     start:'2021/09/22 14:52:00'
+// });
+let time = new Date().getTime()
+let task = clockPolling.setClock([...callbacks, () => {
+    console.log('setInterval !!!!!', new Date().getTime() - time);
+    time = new Date().getTime()
+}], {
+    start:'2021/09/22 17:21:00',
     cycle: 2000,
-    times:3,
-    immediate: true,
-    // manual: true
-}) 
+    count: 1,
+    manual: true,
+})
+setInterval(() => {
+    task.next();
+}, 500)
+
+ 
+// clockPolling.setClock((task) => {
+
+//     console.log('!!!!!!!!!!!!! task2', new Date())
+// }, {
+//     start: 5000,
+//     cycle: 2000,
+//     count: 3,
+//     immediate: true,
+//     // manual: true
+// })

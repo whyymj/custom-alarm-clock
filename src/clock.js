@@ -20,19 +20,33 @@ function analysizeTime(time = 0) {
 }
 class ClockTask extends Task {
     clock;
-    callback;
+    callbacks=[];
     name;
     runtime=0
     constructor(callback, time) {
         super(callback, time);
         this.clock =  time;
-        this.callback = callback;
+        this.addCallback(callback);
+    }
+    addCallback(callback){
+        if(typeof callback == 'function'){
+            this.callbacks.push(callback) ;
+        }else if(Array.isArray(callback)){
+            callback.forEach(cb=>{
+                this.addCallback(cb)
+            })
+        }
+    }
+    run(){
+        this.callbacks.forEach(fun=>{
+            fun();
+        })
     }
 }
 export default class Clock {
     timingTasks = {};
     taskIdx = 0;
-    suspendId = {};
+    sleepId = {};
     clearId = {}
     constructor(Timer) {
         this.mainThread = (last, now, interval) => {
@@ -40,11 +54,11 @@ export default class Clock {
             for (let t in this.timingTasks) {
                 if (t <= now) {
                     this.timingTasks[t].forEach(item => {
-                        if (this.suspendId[item.id] || this.clearId[item.id]) {
-                            delete this.suspendId[item.id];
+                        if (this.sleepId[item.id] || this.clearId[item.id]) {
+                            delete this.sleepId[item.id];
                             delete this.clearId[item.id];
                         } else {
-                            item.callback()
+                            item.run()
                         }
                     })
                     delete this.timingTasks[t]
@@ -65,17 +79,14 @@ export default class Clock {
         let time = analysizeTime(option);
         let ids = [];
         if (typeof time === 'number' && time === time) {
-            if (typeof callback == 'function') {
-                let task = new ClockTask(callback, time); 
-                if(option.name!==undefined){
-                    task.name=option.name;
-                }
-                this.timingTasks[task.clock] = this.timingTasks[task.clock] || []
-                ids.push(task.id)
-                this.timingTasks[task.clock].push(task);
+            let task = new ClockTask(callback, time); 
+            if(option.name!==undefined){
+                task.name=option.name;
             }
+            this.timingTasks[task.clock] = this.timingTasks[task.clock] || []
+            ids.push(task.id)
+            this.timingTasks[task.clock].push(task);
         }
-         
         return ids
     }
     find(ids) {
@@ -104,28 +115,28 @@ export default class Clock {
     }
     stopAll() {
         this.timingTasks = {};
-        this.suspendId = {};
+        this.sleepId = {};
         this.clearId = {}
     }
-    suspendAll() {
+    sleepAll() {
         for (let k in this.timingTasks) {
             if (this.timingTasks[k]) {
                 this.timingTasks[k].forEach(item => {
-                    this.suspendId[item.id] = true
+                    this.sleepId[item.id] = true
                 })
             }
         }
     }
-    suspend(ids) {
+    sleep(ids) {
         this.find(ids).forEach(item => {
-            this.suspendId[item.id] = true
+            this.sleepId[item.id] = true
         })
     }
-    continue (ids) {
-        delete this.suspendId[ids]
+    notify (ids) {
+        delete this.sleepId[ids]
     }
-    continueAll(ids) {
-        this.suspendId = {}
+    notifyAll() {
+        this.sleepId = {}
     }
 
 }
