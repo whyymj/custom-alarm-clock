@@ -1,6 +1,6 @@
 {
   "name": "custom-alarm-clock",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "闹钟功能，包括:定时启动，重复次数定制，暂停重启等功能",
   "main": "dist/index.js",
   "dependencies": {

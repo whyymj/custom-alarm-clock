@@ -107,6 +107,7 @@ class ClockPolling {
             },
             reset(option) {
                 taskIds = that.clock.reset(taskIds, getCallback(callback, task), option === undefined ? options : option);
+                this.clock=taskIds;
             }
         })
         return task;
@@ -133,6 +134,7 @@ class ClockPolling {
             },
             reset(option) {
                 taskIds = that.polling.reset(taskIds, getCallback(callback, task), option === undefined ? options : option);
+                this.polling=taskIds;
             },
             next() {
                 that.polling.next(taskIds);
@@ -206,10 +208,12 @@ class ClockPolling {
                 }
                 if (typeof option === 'object') {
                     if (option.start !== undefined) {
-                        that.clock.reset(option.start);
+                        id['clock']=that.clock.reset(option.start);
                     }
 
-                    that.polling.reset(option)
+                    id['polling']=that.polling.reset(option)
+                    this.clock=id['clock'];
+                    this.polling =id['polling'];
                 } else {
                     throw new TypeError(`only object:
                         {start: 0,//start time

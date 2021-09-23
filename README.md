@@ -85,7 +85,6 @@ alarmClock.setTimeout(() => {
 
 In Node.js:
 
-
 Asynchronous operation such as ajax requestion; you can decide when start the next circle.
 
 异步操作如果耗时较长，或者周期较短，例如：每秒请求一次耗时1s左右的接口；可以手动控制下次查询的开启。
@@ -94,7 +93,6 @@ Asynchronous operation such as ajax requestion; you can decide when start the ne
 const alarmClock = require('custom-alarm-clock');
 
 alarmClock.setClock((task) => {
-
     console.log('测试闹钟', new Date());
     alarmClock.setTimeout(() => {//模拟异步操作
         console.log('next');
@@ -107,9 +105,51 @@ alarmClock.setClock((task) => {
     manual: true,//设置闹钟手动开启下一轮循环
 })
 
+```
+
+
+In Node.js:
+
+named task；
+
+如果设置了闹钟的名称（name），name相同的clock只会保留最后一个；适用于SPA的页面切换时的定时任务重置，不需要手动clear；
+
+```js
+const alarmClock = require('custom-alarm-clock');
+
+//这里的task1不会启动，将被task2顶替
+let task1 = alarmClock.setClock((task) => {
+    console.log('测试闹钟1');
+}, {
+    start: 0,
+    cycle: 0, //24*60*60*1000
+    count: Infinity,
+    name:'testName',//
+})
+
+let task2 = alarmClock.setClock((task) => {
+    console.log('测试闹钟2');
+}, {
+    start: 1000,
+    cycle: 1000, //24*60*60*1000
+    count: Infinity,
+    name:'testName',//task2 的name 与task1 相同；相当于 task1.clear()
+})
+
 
 ```
 
+
+In Node.js:
+
+sleepAll/ notifyAll / clearAll
+
+```js
+
+alarmClock.sleepAll();//用于睡眠全部运行中的闹钟
+alarmClock.notifyAll();//用于唤醒全部睡眠中的闹钟
+alarmClock.clearAll();//用于清除全部闹钟，释放资源
+```
 All suggestions and opinions are welcome. 
 
 QQ:454413790

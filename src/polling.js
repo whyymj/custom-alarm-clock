@@ -41,7 +41,7 @@ class PollingTask extends Task {
         if (typeof option === 'number' && option === option) {
             this.cycle = option;
         } else if (typeof option === 'object') {
-            let keys = ['notify', 'sleep', 'stop', 'next', 'canNextCircle', 'nextTime', 'tasks', 'leftTime'];
+            let keys = ['notify', 'sleep', 'stop', 'next', 'canNextCircle', 'nextTime', 'tasks', 'leftTime','constructor'];
             for (let k in option) {
                 if (option[k] !== undefined) {
                     if (keys.includes(k)) {
@@ -123,7 +123,7 @@ function skip(start, end, interval) {
 }
 export default class Polling {
     tasks = {};
-    tasksIdx = 0;
+    namedTasks={}
     sleepProcess = {}; //手动确认结束任务
     constructor(Timer) {
         this.mainThread = (last, now, interval) => {
@@ -142,6 +142,9 @@ export default class Polling {
                         task.run();
                     }
                 } else {
+                    if(this.tasks[k].name){
+                        delete this.namedTasks[this.tasks[k].name];
+                    }
                     delete this.tasks[k];
                 }
             }
@@ -164,6 +167,12 @@ export default class Polling {
         } else {
             this.tasks[task.id] = task;
         }
+        if(task.name){
+            if(this.namedTasks[task.name]!==undefined){
+                this.stop(this.namedTasks[task.name])
+            }
+            this.namedTasks[task.name]=task.id
+        }
 
         return task.id
     }
@@ -176,6 +185,9 @@ export default class Polling {
             return ids.map(id => {
                 return this.find(id);
             }).flat(Infinity).filter(Boolean)
+        }
+        if(ids instanceof PollingTask) {
+            return [ids]
         }
         return [this.tasks[ids] || this.sleepProcess[ids]].filter(Boolean)
     }
@@ -241,7 +253,7 @@ export default class Polling {
         })
     }
     sleepAll() {
-        this.sleep(this.find([...Object.keys(this.tasks), ...Object.keys(this.sleepProcess)]))
+        this.sleep([...Object.keys(this.tasks), ...Object.keys(this.sleepProcess)])
     }
     stop(ids) {
         this.find(ids).forEach(task => {

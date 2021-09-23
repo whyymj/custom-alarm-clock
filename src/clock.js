@@ -1,28 +1,29 @@
-
 import Task from './util/task.js'
 
-import {analysizeTime} from './util/getTime'
+import {
+    analysizeTime
+} from './util/getTime'
 class ClockTask extends Task {
     clock;
-    callbacks=[];
+    callbacks = [];
     name;
-    runtime=0
+    runtime = 0
     constructor(callback, time) {
         super(callback, time);
-        this.clock =  time;
+        this.clock = time;
         this.addCallback(callback);
     }
-    addCallback(callback){
-        if(typeof callback == 'function'){
-            this.callbacks.push(callback) ;
-        }else if(Array.isArray(callback)){
-            callback.forEach(cb=>{
+    addCallback(callback) {
+        if (typeof callback == 'function') {
+            this.callbacks.push(callback);
+        } else if (Array.isArray(callback)) {
+            callback.forEach(cb => {
                 this.addCallback(cb)
             })
         }
     }
-    run(){
-        this.callbacks.forEach(fun=>{
+    run() {
+        this.callbacks.forEach(fun => {
             fun();
         })
     }
@@ -31,7 +32,8 @@ export default class Clock {
     timingTasks = {};
     taskIdx = 0;
     sleepId = {};
-    clearId = {}
+    clearId = {};
+    namedTasks = {};
     constructor(Timer) {
         this.mainThread = (last, now, interval) => {
             now = now.getTime()
@@ -43,6 +45,9 @@ export default class Clock {
                             delete this.clearId[item.id];
                         } else {
                             item.run()
+                        }
+                        if(item.name){
+                            delete this.namedTasks[item.name]
                         }
                     })
                     delete this.timingTasks[t]
@@ -59,17 +64,21 @@ export default class Clock {
             return option.map(item => {
                 return this.add(callback, item)
             })
-        } 
+        }
         let time = analysizeTime(option);
         let ids = [];
         if (typeof time === 'number' && time === time) {
-            let task = new ClockTask(callback, time); 
-            if(option.name!==undefined){
-                task.name=option.name;
-            }
+            let task = new ClockTask(callback, time);
+            task.name = option?.name;
             this.timingTasks[task.clock] = this.timingTasks[task.clock] || []
             ids.push(task.id)
             this.timingTasks[task.clock].push(task);
+            if (task.name) {
+                if (this.namedTasks[task.name]!== undefined) {
+                    this.stop(this.namedTasks[task.name]);
+                }
+                this.namedTasks[task.name] = task.id;
+            }
         }
         return ids
     }
@@ -116,7 +125,7 @@ export default class Clock {
             this.sleepId[item.id] = true
         })
     }
-    notify (ids) {
+    notify(ids) {
         delete this.sleepId[ids]
     }
     notifyAll() {
