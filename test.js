@@ -8,21 +8,28 @@ const alarmClock = require('./dist/index.js');
 //     console.log('test setInterval 1000');
 // }, 1000)
 
-alarmClock.setClock((task) => {
-    console.log('测试闹钟1');
-}, {
-    start: 0,
-    cycle: 0, //24*60*60*1000
-    count: Infinity,
-    name:'testName'
-})
+// alarmClock.setClock((task) => {
+//     console.log('测试闹钟1');
+// }, {
+//     start: 0,
+//     cycle: 0, //24*60*60*1000
+//     count: Infinity,
+//     name:'testName'
+// })
 
-alarmClock.setClock((task) => {
-    console.log('测试闹钟2');
-}, {
-    start: 1000,
-    cycle: 1000, //24*60*60*1000
-    count: Infinity,
-    name:'testName'
-})
+// alarmClock.setClock((task) => {
+//     console.log('测试闹钟2');
+// }, {
+//     start: 1000,
+//     cycle: 1000, //24*60*60*1000
+//     count: Infinity,
+//     name:'testName'
+// })
 
+alarmClock.setClock(()=>{
+    console.log('此时相当于使用requestAnimationFrame')
+},{
+    start:0,
+    cycle: 0,
+    count: Infinity,
+})
