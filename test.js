@@ -10,10 +10,13 @@ let time1 = new Date().getTime();
 
 // }, 1000)
 
-alarmClock.setClock((task) => {
-    console.log('test setClock 2021/9/22 18:18:30', new Date());
+alarmClock.setClock(() => {
+    console.log('测试设置闹钟每天9:00运行，跳过周六周日', new Date());
 }, {
-    start: 2000,
-    cycle: 1000,
-    count: 3
+    start: new Date('2021/9/21 9:00:00'),
+    cycle: 1000, //24*60*60*1000
+    count: Infinity,
+    skip() { 
+        return new Date().getMinutes() % 2;
+    }
 })

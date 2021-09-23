@@ -1,23 +1,7 @@
-import {
-    yMdhms,
-} from './util/getTime.js'
+
 import Task from './util/task.js'
 
-function analysizeTime(time = 0) {
-    if (typeof time == 'object' && time.start) {
-        return analysizeTime(time.start)
-    }
-    if (typeof time == 'string') {
-        time = new Date(time).getTime();
-    } else if (time instanceof Date) {
-        time = time.getTime();
-    } else if (typeof time == 'object') {
-        time = yMdhms(time.year, time.month, time.day, time.hour, time.min, time.sec, time.msec).getTime();
-    } else if (typeof time == 'number') {
-        time = new Date().getTime() + time
-    }
-    return time;
-}
+import {analysizeTime} from './util/getTime'
 class ClockTask extends Task {
     clock;
     callbacks=[];

@@ -1,6 +1,6 @@
 # custom-alarm-clock
 
-闹钟功能，包括:定时启动，重复次数定制，暂停重启等功能;
+利用requestAnimationFrame（不支持的环境采用 setTimeout ,周期默认 1000/60 ms）封裝的闹钟功能插件；主要功能包括:定时启动，重复次数定制，暂停重启等功能;
 
 ## Installation
 
@@ -13,7 +13,7 @@ $ npm i --save custom-alarm-clock
 In Node.js:
 
 
-timing function
+setClock
 
 ```js
 const alarmClock = require('custom-alarm-clock') 
@@ -34,13 +34,22 @@ alarmClock.setClock((task) => {
 alarmClock.setClock((task) => {
     console.log('test setClock 2021/9/22 18:18:30', new Date());
 }, {
-    start: '2021/9/22 18:18:30',//闹钟定时,string视为指定日期 new Date(start)，number视作延迟 start ms
-    count: 3,//闹钟重复次数,Infinity则无限循环
-    cycle: 1000,//重复间隔 ms
+    start: '2021/9/22 18:18:30',//闹钟定时,string视为指定日期,  new Date(start)，number视作延迟 start ms
+    count: 3,//闹钟重复次数,
+    cycle: 1000,//重复间隔 ms; 0 相当于requestAnimationFrame
 })
 
+alarmClock.setClock(() => {
+    console.log('设置闹钟每天9:00运行，跳过周六周日', new Date());
+}, {
+    start: new Date('2021/9/21 9:00:00'),//
+    cycle: 86400000, //24*60*60*1000
+    count: Infinity,
+    skip() {
+        return new Date().getDay() < 6 && new Date().getDay() > 0; //周六周日跳过
+    }
+})
 ```
-
 
 
 All suggestions and opinions are welcome. 

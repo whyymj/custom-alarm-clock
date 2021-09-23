@@ -11,8 +11,9 @@ class PollingTask extends Task {
     canNextCircle = true; //NEXT操作节流
     tasks = []
     yieldIdx = 0;
-    nextTime = 0;
-    left = 0; //下次剩余时间
+    nextTime = 0;//下次启动的时间
+    leftTime = 0; //距离下次剩余时间
+    skip=null;
     constructor(task, option) {
         super(task, option);
         this.set(option);
@@ -40,7 +41,7 @@ class PollingTask extends Task {
         if (typeof option === 'number' && option === option) {
             this.cycle = option;
         } else if (typeof option === 'object') {
-            let keys = ['notify', 'sleep', 'stop', 'next', 'canNextCircle', 'nextTime', 'tasks', 'left'];
+            let keys = ['notify', 'sleep', 'stop', 'next', 'canNextCircle', 'nextTime', 'tasks', 'leftTime'];
             for (let k in option) {
                 if (option[k] !== undefined) {
                     if (keys.includes(k)) {
@@ -51,7 +52,7 @@ class PollingTask extends Task {
                 }
             }
         }
-        this.left = this.immediate ? 0 : this.cycle;
+        this.leftTime = this.immediate ? 0 : this.cycle;
         if (!this.sleeping) {
             let now = new Date().getTime();
             if (this.immediate) {
@@ -68,12 +69,16 @@ class PollingTask extends Task {
         let skipNum = skip(this.absolute ? this.nextTime : now.getTime(), now.getTime(), this.cycle);
         this.nextTime = (this.absolute ? this.nextTime : now.getTime()) + this.cycle * skipNum;
         this.count--;
-        this.left = (this.nextTime - now.getTime());
+        this.leftTime = (this.nextTime - now.getTime());
         this.canNextCircle = true;
         this.itercount++;
     }
     nextStep(callback) {
-        if(this.left>0){
+        if(this.skip&&this.skip()){
+            this.skipCircle() 
+            return
+        }
+        if(this.leftTime>0){
             return;
         }
         callback&&callback();
@@ -85,7 +90,16 @@ class PollingTask extends Task {
         }
 
     }
+    skipCircle(){
+        this.refresh();
+        this.count++;
+        this.itercount--;
+    }
     run() {
+        if(this.skip&&this.skip()){
+            this.skipCircle() 
+            return
+        }
         if (this.manual) {
             this.nextStep();
             return
@@ -118,8 +132,8 @@ export default class Polling {
                     continue;
                 }
                 if (task.count > 0) {
-                    task.left = task.left - interval;
-                    if (task.left <= 0) {
+                    task.leftTime = task.leftTime - interval;
+                    if (task.leftTime <= 0) {
                         if (task.manual) {
                             this.sleepProcess[k] = task;
                             delete this.tasks[k];
@@ -200,8 +214,9 @@ export default class Polling {
                 task.canNextCircle = false;
                 this.tasks[task.id] = this.sleepProcess[task.id] ? this.sleepProcess[task.id] : this.tasks[task.id];
                 delete this.sleepProcess[task.id];
-            } 
-            task.nextStep(callback);
+            } else{
+                task.nextStep(callback);
+            }
             
         } : idle;
         if (task.sleeping) {

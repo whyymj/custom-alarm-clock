@@ -1,7 +1,8 @@
-
 import Clock from './clock'
 import Polling from './polling'
 import Timer from './util/timer.js'
+
+import {analysizeTime} from './util/getTime'
 
 function getDefaultOption(options) {
     let defaultOption = {
@@ -25,19 +26,20 @@ function getDefaultOption(options) {
     }
     return defaultOption;
 }
-function getCallback(callback,params){
+
+function getCallback(callback, params) {
     let task;
     if (typeof callback == 'function') {
         task = () => callback(params)
     } else if (Array.isArray(callback)) {
         task = callback.map(fun => {
-            if(typeof fun == 'function'){
+            if (typeof fun == 'function') {
                 return () => fun(params)
             }
         }).filter(Boolean)
-    }else{
+    } else {
         throw new Error('callbacks are needed')
-    } 
+    }
     return task
 }
 class ClockPolling {
@@ -86,7 +88,7 @@ class ClockPolling {
     setTimeout(callback, options) { //setTimeout 
         let that = this;
         let task = {}
-        let taskIds = this.clock.add(getCallback(callback,task), options)
+        let taskIds = this.clock.add(getCallback(callback, task), options)
         Object.assign(task, {
             clock: taskIds,
             callback,
@@ -104,7 +106,7 @@ class ClockPolling {
                 that.clock.notify(taskIds);
             },
             reset(option) {
-                taskIds = that.clock.reset(taskIds, getCallback(callback,task), option === undefined ? options : option);
+                taskIds = that.clock.reset(taskIds, getCallback(callback, task), option === undefined ? options : option);
             }
         })
         return task;
@@ -112,7 +114,7 @@ class ClockPolling {
     setInterval(callback, options) { //setInterval 
         let that = this;
         let task = {}
-        let taskIds = this.polling.add(getCallback(callback,task), options)
+        let taskIds = this.polling.add(getCallback(callback, task), options)
         Object.assign(task, {
             polling: taskIds,
             callback,
@@ -130,7 +132,7 @@ class ClockPolling {
                 that.polling.notify(taskIds);
             },
             reset(option) {
-                taskIds = that.polling.reset(taskIds, getCallback(callback,task), option === undefined ? options : option);
+                taskIds = that.polling.reset(taskIds, getCallback(callback, task), option === undefined ? options : option);
             },
             next() {
                 that.polling.next(taskIds);
@@ -141,6 +143,12 @@ class ClockPolling {
     getClockIds(callback, options) {
 
         let id = {}
+        let start = analysizeTime(options.start)
+        let now = new Date().getTime()
+        if (start < now) {
+            options.count = options.count - Math.floor((now - start) / options.cycle);
+            options.start = new Date(Math.ceil((now - start) / options.cycle) * options.cycle + start);
+        }
         id['polling'] = this.polling.add(callback, {
             absolute: false,
             ...options,
@@ -150,13 +158,19 @@ class ClockPolling {
         id['clock'] = this.clock.add(() => {
             this.polling.notify(id['polling'])
         }, options.start)
+
+
         return id
     }
     setClock(callback, options) {
-         
+
         let task = {}
         let defaultOption = getDefaultOption(options);
-        let id = this.getClockIds(getCallback(callback,task), defaultOption);
+        if (defaultOption.immediate) {
+            callback(task)
+            defaultOption.count--;
+        }
+        let id = this.getClockIds(getCallback(callback, task), defaultOption);
         let that = this;
 
         Object.assign(task, {
@@ -207,9 +221,6 @@ class ClockPolling {
 
             }
         })
-        if (defaultOption.immediate) {
-            callback(task)
-        }
         return task
     }
 
