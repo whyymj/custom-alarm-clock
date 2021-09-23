@@ -138,7 +138,7 @@ In Node.js:
 
 **Named Task；**
 
-如果设置了闹钟的名称（name），name相同的clock只会保留最后一个；适用于SPA的页面切换时的定时任务重置，省略了手动clear；
+如果设置了闹钟的名称（name），name相同的clock只会保留最后一个；适用于高频重复创建任务 -- 防抖操作；
 
 ```js
 const alarmClock = require('custom-alarm-clock');
