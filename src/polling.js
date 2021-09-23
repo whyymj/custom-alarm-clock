@@ -85,7 +85,8 @@ class PollingTask extends Task {
         if (this.yieldIdx < this.tasks.length) {
             this.tasks[this.yieldIdx]();
             this.yieldIdx++;
-        } else {
+        } 
+        if(this.yieldIdx >= this.tasks.length) {
             this.refresh();
         }
 

@@ -186,6 +186,7 @@ class ClockPolling {
             },
             next() {
                 that.polling.next(id.polling);
+                
             },
             clear() {
                 that.clock.stop(id.clock);

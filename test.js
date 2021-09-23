@@ -8,15 +8,18 @@ let time1 = new Date().getTime();
 // alarmClock.setInterval((task) => {
 //     console.log('test setInterval 1000', new Date().getTime() - time1);
 
-// }, 1000)
+// }, 1000) 
 
-alarmClock.setClock(() => {
-    console.log('测试设置闹钟每天9:00运行，跳过周六周日', new Date());
+alarmClock.setClock((task) => {
+    console.log('测试闹钟停止', new Date());
+    alarmClock.setTimeout(() => {//模拟异步操作
+        console.log('next');
+        task.next();
+    }, 10000)
 }, {
-    start: new Date('2021/9/21 9:00:00'),
+    start: 0,
     cycle: 1000, //24*60*60*1000
     count: Infinity,
-    skip() { 
-        return new Date().getMinutes() % 2;
-    }
+    manual: true,
 })
+
