@@ -73,7 +73,7 @@ alarmClock.setClock(()=>{
 
 In Node.js:
 
-**clock .sleep() & .notify()**
+**clock    .sleep() & .notify() & .delay()**
 
 **闹钟可以任意暂停重启。**
 
@@ -87,6 +87,7 @@ let taskObject = alarmClock.setClock((task) => {
     if(count>5){// 5s后该闹钟sleep，未被销毁；
         count=0;
         task.sleep();//callback入参为定时任务实例，可以用来临时暂停任务; task === taskObject;
+        //task.delay(); // sleep()跳过本轮运行，delay()推迟运行。 例如：8:00闹钟，今天sleep掉，1小时后notify，明天依然8:00响；8:00的闹钟delay后，1小时后notify；则明天9:00才响；
     }
 }, {
     start: 0,
@@ -171,6 +172,43 @@ let task2 = alarmClock.setClock((task) => {
 
 In Node.js:
 
+**Task Group**
+
+设置了groupName后的闹钟可以用 .sleepGroup(groupName)/.delayGroup(groupName)/.notifyGroup(groupName) 统一操作;
+
+```js
+const alarmClock = require('custom-alarm-clock');
+
+//这里的task1不会启动，将被task2顶替
+alarmClock.setClock((task) => {
+    console.log('测试分组1');
+}, {
+    start: 0,
+    cycle: 0, 
+    count: 3,
+    groupName:'testName',//
+    eventListener(eventName){
+        //eventName: created,refreshed,notified,sleeped,delayed,cleared
+    }
+})
+
+alarmClock.setClock((task) => {
+    console.log('测试分组2');
+}, {
+    start: 1000,
+    cycle: 1000, 
+    count: 3,
+    groupName:'testName',
+})
+
+
+```
+
+------------
+
+
+In Node.js:
+
 **全局Api**
 **.sleepAll / .notifyAll / .clearAll**
 
@@ -184,7 +222,8 @@ alarmClock.clearAll();//用于清除全部闹钟，释放资源
 ------------
 
 
-**All suggestions and opinions are welcome. **
+**All suggestions and opinions are welcome.**
 
-QQ:454413790
-Email: 454413790@qq.com
+**QQ:454413790**
+
+**Email: 454413790@qq.com**

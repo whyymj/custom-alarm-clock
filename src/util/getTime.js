@@ -34,5 +34,6 @@ export function analysizeTime(time = 0) {
     } else if (typeof time == 'number') {
         time = new Date().getTime() + time
     }
-    return time;
+    
+    return typeof time=='number' ? time : 0;
 }
