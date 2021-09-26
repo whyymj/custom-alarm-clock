@@ -10,10 +10,9 @@ const alarmClock = require('./dist/index.js');
 
 alarmClock.setClock((task) => {
     console.log('测试分组1',new Date());
-}, {
-    start: '2021/9/25 16:13:30',
+}, { 
     cycle: 1000, 
-    count: 60,
+    count: 10,
     groupName:'testName',//
 })
 
@@ -27,20 +26,3 @@ alarmClock.setClock((task) => {
 // })
 
 
-// alarmClock.delayGroup('testName');
-console.log('!!!!!!',new Date());
-
-// alarmClock.setClock(()=>{
-//     alarmClock.sleepGroup('testName');
-//     console.log('delayGroup!!!',new Date());
-// }, {
-//     start: '2021/9/25 15:19:35',
-//     count: 1,
-// })
-// alarmClock.setClock(()=>{
-//     alarmClock.notifyGroup('testName');
-//     console.log('notifyGroup!!!',new Date());
-// }, {
-//     start: '2021/9/25 15:33:30',
-//     count: 1,
-// })

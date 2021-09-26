@@ -35,5 +35,5 @@ export function analysizeTime(time = 0) {
         time = new Date().getTime() + time
     }
     
-    return typeof time=='number' ? time : 0;
+    return typeof time=='number' ? time : new Date().getTime();
 }
