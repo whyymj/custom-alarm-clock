@@ -23,5 +23,4 @@ export default class Timeout extends Clock{
     constructor(callback, options) {
       super(callback, getDefaultOption(options));
     }
-    
 }

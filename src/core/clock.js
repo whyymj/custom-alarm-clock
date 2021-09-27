@@ -22,23 +22,23 @@ function getDefaultOption(options) {
     let cycle = defaultOption.cycle || 1;
 
     defaultOption.count = defaultOption.count + Math.min(Math.floor((start - now) / cycle), 0);
-    defaultOption.start = new Date(Math.max(Math.ceil((now - start) / cycle), 0) * cycle + start); 
+    defaultOption.start = Math.max(Math.ceil((now - start) / cycle), 0) * cycle + start;
 
     return defaultOption;
 }
 
 export default class Clock extends Polling {
-
-    constructor(Timer) {
-        super(Timer);
+    constructor(){
+        super();
     }
+
     add(callback, option = 0) {
         let now = new Date().getTime();
         let defaultOption = getDefaultOption(option);
         let task = super.add(callback, defaultOption);
         task.leftTime = defaultOption.start - now;
         task.nextTime = defaultOption.start;
-        
+
         return task
     }
 }

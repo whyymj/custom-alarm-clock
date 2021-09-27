@@ -1,12 +1,11 @@
 import Polling from './core/polling'
-import {taskPool} from './core/task'
-import timer from './core/timer.js'
+import taskPool from './core/task'
 import {
     getCallback,
     getOption
 } from './util/index'
 
-let polling = new Polling(timer);
+let polling = new Polling();
 
 export default class Interval {
     status;

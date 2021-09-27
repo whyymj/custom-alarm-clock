@@ -1,7 +1,7 @@
 import Clock from './setClock' 
 import Interval from './setInterval'
 import Timeout from './setTimeout' 
-import {taskPool} from './core/task'
+import taskPool from './core/taskPool'
 class ClockPolling {
     clear(task) {
         if (typeof task == 'object') {
@@ -13,12 +13,21 @@ class ClockPolling {
     clearAll() {
         taskPool.stopAll(); 
     }
+    clearGroup(groupName) {
+        taskPool.stopGroup(groupName); 
+    }
     sleep(task) {
         if (typeof task == 'object') {
             if (task.sleep) {
                 task.sleep();
             }
         }
+    }
+    sleepAll() {
+        taskPoolk.sleepAll(); 
+    }
+    sleepGroup(groupName) {
+        taskPool.sleepGroup(groupName); 
     }
     delay(task) {
         if (typeof task == 'object') {
@@ -33,20 +42,11 @@ class ClockPolling {
     delayGroup(groupName) {
         taskPool.delayGroup(groupName) 
     }
-    sleepAll() {
-        taskPoolk.sleepAll(); 
-    }
     notify(task) {
         taskPool.notify(task)
     }
     notifyAll() {
         taskPool.notifyAll();
-    }
-    clearGroup(groupName) {
-        taskPool.stopGroup(groupName); 
-    }
-    sleepGroup(groupName) {
-        taskPool.sleepGroup(groupName); 
     }
     notifyGroup(groupName) {
         taskPool.notifyGroup(groupName);
@@ -84,7 +84,7 @@ let clock_polling = new ClockPolling();
     exports.default = clock_polling;
     exports.setTimeout = clock_polling.setTimeout;
     exports.setInterval = clock_polling.setInterval;
-    exports.setClock = clock_polling.setClock.bind(clock_polling);
+    exports.setClock = clock_polling.setClock;
     exports.clear = clock_polling.clear.bind(clock_polling);
     exports.clearGroup = clock_polling.clearGroup.bind(clock_polling);
     exports.clearAll = clock_polling.clearAll.bind(clock_polling);

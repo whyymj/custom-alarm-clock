@@ -1,10 +1,10 @@
 import Clock from './core/clock'
-import timer from './core/timer.js'
+import taskPool from './core/task'
 import {
     getCallback,
 } from './util/index'
 
-let clock = new Clock(timer);
+let clock = new Clock();
 
 function getDefaultOption(options) {
     let defaultOption = {
@@ -47,25 +47,22 @@ export default class AlarmClock {
         }
         this.taskIds = clock.add(this.callback, this.options).id;
     }
-    check() {
-        return clock.find(this.taskIds)
-    }
     clear() {
-        clock.stop(this.taskIds);
+        taskPool.stop(this.taskIds);
     }
     sleep() {
-        clock.sleep(this.taskIds);
+        taskPool.sleep(this.taskIds);
     }
     delay() {
-        clock.delay(this.taskIds);
+        taskPool.sleep(this.taskIds);
     }
     notify() {
-        clock.notify(this.taskIds);
+        taskPool.notify(this.taskIds);
     }
     reset(option) {
-        this.taskIds = clock.reset(this.taskIds, this.callback, option === undefined ? this.options : option);
+        this.taskIds = polling.reset(this.taskIds, this.callback, option === undefined ? this.options : option);
     }
     next() {
-        clock.next(this.taskIds);
+        taskPool.next(this.taskIds);
     }
 }

@@ -28,20 +28,15 @@
 class Timer {
     callbacks = [];
     constructor() {
-        let last = new Date();
-        let now = last;
-        let lastTime = last.getTime();
-        let nowTime = lastTime;
-
+        let start = new Date().getTime();
+        let interval = 0;
         const timing = () => {
-            now = new Date();
-            nowTime = now.getTime();
             this.callbacks.forEach(fun => {
-                fun(last, now, nowTime - lastTime)
-            })
-            last = now;
-            lastTime = nowTime;
-            requestAnimationFrame(timing)
+                fun(interval);
+            }) 
+            interval = new Date().getTime() - start;
+            start = start + interval;
+            return requestAnimationFrame(timing)
         }
         timing()
     }
