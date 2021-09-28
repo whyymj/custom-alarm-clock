@@ -1,5 +1,5 @@
 import Clock from './core/clock'
-import taskPool from './core/task'
+import taskPool from './core/taskPool'
 import {
     getCallback,
 } from './util/index'
@@ -54,7 +54,7 @@ export default class AlarmClock {
         taskPool.sleep(this.taskIds);
     }
     delay() {
-        taskPool.sleep(this.taskIds);
+        taskPool.delay(this.taskIds);
     }
     notify() {
         taskPool.notify(this.taskIds);

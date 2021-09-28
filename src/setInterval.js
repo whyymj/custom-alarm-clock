@@ -1,5 +1,5 @@
 import Polling from './core/polling'
-import taskPool from './core/task'
+import taskPool from './core/taskPool'
 import {
     getCallback,
     getOption
@@ -24,7 +24,7 @@ export default class Interval {
         taskPool.sleep(this.taskIds);
     }
     delay() {
-        taskPool.sleep(this.taskIds);
+        taskPool.delay(this.taskIds);
     }
     notify() {
         taskPool.notify(this.taskIds);
@@ -34,5 +34,6 @@ export default class Interval {
     }
     next() {
         taskPool.next(this.taskIds);
+
     }
 }

@@ -1,6 +1,6 @@
-import Clock from './setClock' 
+import Clock from './setClock'
 import Interval from './setInterval'
-import Timeout from './setTimeout' 
+import Timeout from './setTimeout'
 import taskPool from './core/taskPool'
 class ClockPolling {
     clear(task) {
@@ -11,10 +11,10 @@ class ClockPolling {
         }
     }
     clearAll() {
-        taskPool.stopAll(); 
+        taskPool.stopAll();
     }
     clearGroup(groupName) {
-        taskPool.stopGroup(groupName); 
+        taskPool.stopGroup(groupName);
     }
     sleep(task) {
         if (typeof task == 'object') {
@@ -24,10 +24,10 @@ class ClockPolling {
         }
     }
     sleepAll() {
-        taskPoolk.sleepAll(); 
+        taskPoolk.sleepAll();
     }
     sleepGroup(groupName) {
-        taskPool.sleepGroup(groupName); 
+        taskPool.sleepGroup(groupName);
     }
     delay(task) {
         if (typeof task == 'object') {
@@ -40,7 +40,7 @@ class ClockPolling {
         taskPool.delayAll();
     }
     delayGroup(groupName) {
-        taskPool.delayGroup(groupName) 
+        taskPool.delayGroup(groupName)
     }
     notify(task) {
         taskPool.notify(task)
@@ -65,10 +65,17 @@ class ClockPolling {
         m: 0,
         s: 0,
         ms: 0,
-        times: 1
     }) {
-        let clock = this.setClock(callback, options);
-
+        let start = new Date();
+        start.setHours(options.h || 0);
+        start.setMinutes(options.m || 0);
+        start.setSeconds(options.s || 0);
+        start.setMilliseconds(options.ms || 0);
+        this.setClock(callback, {
+            start,
+            count: Infinity,
+            cycle: 86400000,
+        });
     }
 
 }
@@ -97,4 +104,5 @@ let clock_polling = new ClockPolling();
     exports.notify = clock_polling.notify.bind(clock_polling);
     exports.notifyGroup = clock_polling.notifyGroup.bind(clock_polling);
     exports.notifyAll = clock_polling.notifyAll.bind(clock_polling);
+    exports.setDailyClock = clock_polling.setDailyClock.bind(clock_polling);
 })))

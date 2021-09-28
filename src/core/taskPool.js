@@ -12,6 +12,7 @@ class Operation {
         this.notify(taskPool.getGroup(groupName))
     }
     sleep(ids) {
+        console.log(ids,'********')
         this.get(ids).forEach(task => {
             task.sleep()
         })
@@ -77,11 +78,10 @@ class TaskPool extends Operation {
                             }
                             if (start >= task.nextTime) {
                                 task.run(start);
-                            } else {
-                                console.log(task.nextTime - start, interval)
                             }
+                        }else{
+                            task.leftTime = task.leftTime - interval;
                         }
-                        task.leftTime = task.leftTime - interval;
                     } else {
                         this.remove(k)
                     }

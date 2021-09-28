@@ -94,9 +94,11 @@ class Task {
     }
     notify() {
         let now = new Date().getTime();
+        console.log(this.delaying,'::::: 1',new Date(this.nextTime),this.leftTime)
         if (this.delaying) {
             this.nextTime = now + this.leftTime;
         }
+        console.log('::::: 2',new Date( this.nextTime),this.leftTime)
         if (!this.nextTime) {
             if (this.immediate) {
                 this.nextTime = now;
