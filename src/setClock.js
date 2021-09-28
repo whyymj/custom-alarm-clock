@@ -1,10 +1,11 @@
-import Clock from './core/clock'
-import taskPool from './core/taskPool'
+import {PollingTask} from './core/task'
+import {
+    analysizeTime
+} from './util/getTime'
 import {
     getCallback,
 } from './util/index'
 
-let clock = new Clock();
 
 function getDefaultOption(options) {
     let defaultOption = {
@@ -13,6 +14,7 @@ function getDefaultOption(options) {
         immediate: false, //立即执行
         manual: false
     }
+    let now = new Date().getTime();
     if (typeof options == 'object') {
         defaultOption = {
             ...defaultOption,
@@ -25,44 +27,49 @@ function getDefaultOption(options) {
     } else if (typeof options == 'boolean') {
         defaultOption.manual = options;
     }
+    defaultOption.start = analysizeTime(options) || now;
+    let start = defaultOption.start;
+    let cycle = defaultOption.cycle || 1;
+
+    defaultOption.count = defaultOption.count + Math.min(Math.floor((start - now) / cycle), 0);
+    defaultOption.start = Math.max(Math.ceil((now - start) / cycle), 0) * cycle + start;
+    let eventListener = defaultOption.eventListener;
+    defaultOption.eventListener = (event, task) => {
+        if (typeof eventListener == 'function') {
+            eventListener(event, task);
+        }
+        this.status = event;
+    }
     return defaultOption;
 }
 
 
 export default class AlarmClock {
     status;
-    taskIds;
+    task;
     options;
     callback;
     constructor(callback, options) {
         this.callback = getCallback(callback, this);
         this.options = getDefaultOption.call(this, options);
-       
-        let eventListener = this.options.eventListener
-        this.options.eventListener = (event, task) => {
-            if (typeof eventListener == 'function') {
-                eventListener(event, this);
-            }
-            this.status = this;
-        }
-        this.taskIds = clock.add(this.callback, this.options).id;
+        let now = new Date().getTime();
+        this.task = new PollingTask(this.callback, this.options);
+        this.task.leftTime = this.options.start - now;
+        this.task.nextTime = this.options.start;
     }
     clear() {
-        taskPool.stop(this.taskIds);
+        this.task.stop();
     }
     sleep() {
-        taskPool.sleep(this.taskIds);
+        this.task.sleep();
     }
     delay() {
-        taskPool.delay(this.taskIds);
+        this.task.delay();
     }
     notify() {
-        taskPool.notify(this.taskIds);
-    }
-    reset(option) {
-        this.taskIds = polling.reset(this.taskIds, this.callback, option === undefined ? this.options : option);
+        this.task.notify();
     }
     next() {
-        taskPool.next(this.taskIds);
+        this.task.next();
     }
 }

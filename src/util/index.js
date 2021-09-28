@@ -19,9 +19,9 @@ export function getOption(options) {
     } : {
         cycle: options
     }
-    defaultOption.eventListener = event => {
+    defaultOption.eventListener = (event,task) => {
         if (typeof options.eventListener == 'function') {
-            options.eventListener(event);
+            options.eventListener(event,task);
         }
         this.status = event;
     }

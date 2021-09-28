@@ -1,39 +1,34 @@
-import Polling from './core/polling'
-import taskPool from './core/taskPool'
+import Task from './core/task'
 import {
     getCallback,
     getOption
 } from './util/index'
-
-let polling = new Polling();
-
-export default class Interval {
+ export default class Interval {
     status;
-    taskIds;
+    task;
     options;
     callback;
     constructor(callback, options) {
         this.callback = getCallback(callback, this);
         this.options = getOption.call(this, options);
-        this.taskIds = polling.add(this.callback, this.options).id;
+        this.task = new Task(this.callback, this.options);
     }
     clear() {
-        taskPool.stop(this.taskIds);
+        this.task.stop();
     }
     sleep() {
-        taskPool.sleep(this.taskIds);
+        this.task.sleep();
     }
     delay() {
-        taskPool.delay(this.taskIds);
-    }
-    notify() {
-        taskPool.notify(this.taskIds);
+        this.task.delay();
     }
     reset(option) {
-        this.taskIds = polling.reset(this.taskIds, this.callback, option === undefined ? this.options : option);
+        this.task = this.task.reset(option??this.options);
+    }
+    notify() {
+        this.task.notify();
     }
     next() {
-        taskPool.next(this.taskIds);
-
+        this.task.next();
     }
 }

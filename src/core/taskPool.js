@@ -12,7 +12,6 @@ class Operation {
         this.notify(taskPool.getGroup(groupName))
     }
     sleep(ids) {
-        console.log(ids,'********')
         this.get(ids).forEach(task => {
             task.sleep()
         })
@@ -79,7 +78,7 @@ class TaskPool extends Operation {
                             if (start >= task.nextTime) {
                                 task.run(start);
                             }
-                        }else{
+                        } else {
                             task.leftTime = task.leftTime - interval;
                         }
                     } else {
@@ -95,22 +94,29 @@ class TaskPool extends Operation {
         }
     }
     add(task) {
+
         if (task.name !== undefined) {
             if (this.namedTasks[task.name] !== undefined) {
-                this.find(this.namedTasks[task.name]).forEach(t => {
+                this.get(this.namedTasks[task.name]).forEach(t => {
                     t.stop()
                 })
             }
             this.namedTasks[task.name] = task.id; //迎新
         }
+        if (task.status === 'destroyed'||task.status === 'beforeDestroy') {
+            return
+        }
         if (task.groupName !== undefined) {
             this.group[task.id] = task.groupName
         }
-
         if (task.delaying) {
             task.delay()
         } else {
             this.tasks[task.id] = task; //挂载任务
+            task.status = 'mounted'
+            if (typeof task.eventListener == 'function') {
+                task.eventListener('mounted', task);
+            }
         }
     }
     remove(k) {
@@ -121,11 +127,13 @@ class TaskPool extends Operation {
             if (task.groupName !== undefined) {
                 delete this.group[task.id];
             }
-            if (typeof task.eventListener == 'function') {
-                task.eventListener('destroy', task);
-            }
+
             delete this.delayProcess[task.id];
-            delete this.tasks[k];
+            delete this.tasks[task.id];
+            task.status = 'destroyed'
+            if (typeof task.eventListener == 'function') {
+                task.eventListener('destroyed', task);
+            }
         })
 
     }
@@ -135,7 +143,7 @@ class TaskPool extends Operation {
         }
         if (Array.isArray(ids)) {
             return ids.map(id => {
-                return this.find(id);
+                return this.get(id);
             }).flat(Infinity).filter(Boolean);
         }
         if (typeof ids == 'object' && ids.id) {

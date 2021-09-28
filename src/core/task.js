@@ -26,14 +26,18 @@ class Task {
     skip = null; //判断是否跳过该轮循环的judger
     groupName; //任务分组名
     eventListener = null; //任务结束后回调 ,生命周期函数 
+    status = '';
+    option=null;
     constructor(callback, option) {
         Task.idx++
         this.id = Task.idx;
         this.setOption(option);
         this.add(callback);
+        this.status = 'created';
         if (typeof this.eventListener == 'function') {
-            this.eventListener('created', this);
+            this.eventListener(this.status, this);
         } 
+        taskPool.add(this);
     }
     add(callback) {
         if (Array.isArray(callback)) {
@@ -53,6 +57,7 @@ class Task {
         this.callbacks.push(callback);
     }
     setOption(option) {
+        this.option = option;
         if (typeof option === 'number' && option === option) {
             this.cycle = option;
         } else if (typeof option === 'object') {
@@ -88,49 +93,55 @@ class Task {
             this.itercount++;
             this.count--;
         }
-        if (typeof this.eventListener == 'function') {
-            this.eventListener('refreshed', this);
-        }
     }
     notify() {
-        let now = new Date().getTime();
-        console.log(this.delaying,'::::: 1',new Date(this.nextTime),this.leftTime)
+        let now = new Date().getTime(); 
         if (this.delaying) {
             this.nextTime = now + this.leftTime;
-        }
-        console.log('::::: 2',new Date( this.nextTime),this.leftTime)
+        } 
         if (!this.nextTime) {
             if (this.immediate) {
                 this.nextTime = now;
             } else {
                 this.nextTime = now + this.cycle;
             }
+        }        
+        taskPool.autoTask(this)
+        this.status = 'notified';
+        if (typeof this.eventListener == 'function'&&(this.delaying||this.sleeping)) {
+            this.delaying = false;
+            this.sleeping = false;
+            this.eventListener(this.status, this);
+            return
         }
         this.delaying = false;
         this.sleeping = false;
-        if (typeof this.eventListener == 'function') {
-            this.eventListener('notified', this);
-        }
-        taskPool.autoTask(this)
+
     };
     sleep() {
         if (!this.sleepable) {
             return
         }
-        this.sleeping = true;
-        if (typeof this.eventListener == 'function') {
-            this.eventListener('sleeped', this);
+        this.status = 'sleeped';
+        if (typeof this.eventListener == 'function'&&!this.sleeping) {
+            this.sleeping = true;
+            this.eventListener(this.status, this);
+            return
         }
+        this.sleeping = true;
     };
     delay() {
         if (!this.delayable) {
             return
         }
-        this.delaying = true;
-        if (typeof this.eventListener == 'function') {
-            this.eventListener('delayed', this);
-        }
         taskPool.manualTask(this)
+        this.status = 'delayed';
+        if (typeof this.eventListener == 'function'&&!this.delaying) {
+            this.delaying = true;
+            this.eventListener(this.status, this);
+            return
+        }
+        this.delaying = true;
     };
     next() {
         if (this.delaying || this.sleeping || !this.manual) {
@@ -145,12 +156,10 @@ class Task {
     };
     stop() {
         if (!this.stopable) {
-            return
+            return;
         }
-        if (typeof this.eventListener == 'function') {
-            this.eventListener('cleared', this);
-        }
-        manualTask.remove(this)
+        this.status = 'beforeDestroy';
+        taskPool.remove(this);
     };
 }
 Task.idx = 0;
@@ -190,5 +199,9 @@ export class PollingTask extends Task {
             }
         }
         this.refresh()
+    }
+    reset(){
+        this.stop();
+        return new PollingTask(this.callbacks,this.option);
     }
 }
