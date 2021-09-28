@@ -179,28 +179,30 @@ In Node.js:
 ```js
 const alarmClock = require('custom-alarm-clock');
 
-//这里的task1不会启动，将被task2顶替
-alarmClock.setClock((task) => {
+let task1 = alarmClock.setClock((task) => {
     console.log('测试分组1');
 }, {
     start: 0,
     cycle: 0, 
     count: 3,
-    groupName:'testName',//
+    groupName:'groupName',//
     eventListener(eventName){
-        //eventName: created,refreshed,notified,sleeped,delayed,cleared
+        //eventName: mounted,destroyed,sleeped,notified...
     }
 })
 
-alarmClock.setClock((task) => {
+let task2 = alarmClock.setClock((task) => {
     console.log('测试分组2');
 }, {
     start: 1000,
     cycle: 1000, 
     count: 3,
-    groupName:'testName',
+    groupName:'groupName',
 })
 
+alarmClock.sleepGroup('groupName');
+// alarmClock.delayGroup('groupName');
+// alarmClock.notifyGroup('groupName');
 
 ```
 
@@ -217,6 +219,7 @@ In Node.js:
 alarmClock.sleepAll();//用于睡眠全部运行中的闹钟
 alarmClock.notifyAll();//用于唤醒全部睡眠中的闹钟
 alarmClock.clearAll();//用于清除全部闹钟，释放资源
+
 ```
 
 ------------
