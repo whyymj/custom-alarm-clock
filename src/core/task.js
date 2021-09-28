@@ -34,9 +34,9 @@ class Task {
         this.setOption(option);
         this.add(callback);
         this.status = 'created';
-        if (typeof this.eventListener == 'function') {
-            this.eventListener(this.status, this);
-        } 
+        // if (typeof this.eventListener == 'function') {
+        //     this.eventListener(this.status, this);
+        // } 
         taskPool.add(this);
     }
     add(callback) {
@@ -199,9 +199,5 @@ export class PollingTask extends Task {
             }
         }
         this.refresh()
-    }
-    reset(){
-        this.stop();
-        return new PollingTask(this.callbacks,this.option);
-    }
+    } 
 }

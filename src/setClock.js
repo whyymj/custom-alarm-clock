@@ -1,4 +1,6 @@
-import {PollingTask} from './core/task'
+import {
+    PollingTask
+} from './core/task'
 import {
     analysizeTime
 } from './util/getTime'
@@ -38,6 +40,11 @@ function getDefaultOption(options) {
         if (typeof eventListener == 'function') {
             eventListener(event, task);
         }
+        if (event == 'mounted') {
+            let now = new Date().getTime();
+            task.leftTime = defaultOption.start - now;
+            task.nextTime = defaultOption.start;
+        }
         this.status = event;
     }
     return defaultOption;
@@ -54,8 +61,6 @@ export default class AlarmClock {
         this.options = getDefaultOption.call(this, options);
         let now = new Date().getTime();
         this.task = new PollingTask(this.callback, this.options);
-        this.task.leftTime = this.options.start - now;
-        this.task.nextTime = this.options.start;
     }
     clear() {
         this.task.stop();

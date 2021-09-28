@@ -1,4 +1,5 @@
 import Timer from './timer.js'
+let taskPool = {};
 class Operation {
     notify(ids) {
         this.get(ids).forEach(task => {
@@ -94,7 +95,6 @@ class TaskPool extends Operation {
         }
     }
     add(task) {
-
         if (task.name !== undefined) {
             if (this.namedTasks[task.name] !== undefined) {
                 this.get(this.namedTasks[task.name]).forEach(t => {
@@ -165,9 +165,6 @@ class TaskPool extends Operation {
         }
         return this.get(ids)
     }
-    update() {
-
-    }
     manualTask(k) {
         this.get(k).forEach(task => {
             this.delayProcess[task.id] = task;
@@ -192,4 +189,5 @@ class TaskPool extends Operation {
     }
 
 }
-export default new TaskPool();
+taskPool = new TaskPool();
+export default taskPool;

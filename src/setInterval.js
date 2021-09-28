@@ -22,9 +22,6 @@ import {
     delay() {
         this.task.delay();
     }
-    reset(option) {
-        this.task = this.task.reset(option??this.options);
-    }
     notify() {
         this.task.notify();
     }
