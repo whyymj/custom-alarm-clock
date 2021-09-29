@@ -84,7 +84,7 @@ let taskObject = alarmClock.setClock((task) => {
     count++;
     if(count>5){// 5s后该闹钟sleep，未被销毁；
         count=0;
-        task.sleep();//callback入参为定时任务实例，可以用来临时暂停任务; task === taskObject;
+        task.sleep();//callback入参为定时任务实例，可以用来临时暂停任务;
         //task.delay(); // sleep()跳过本轮运行，delay()推迟运行。 例如：8:00闹钟，今天sleep掉，1小时后notify，明天依然8:00响；8:00的闹钟delay后，1小时后notify；则明天9:00才响；
     }
 }, {
@@ -98,6 +98,10 @@ alarmClock.setTimeout(() => {
     taskObject.notify();//sleep的闹钟可以重新唤醒
 }, 10000);
 
+alarmClock.setClock((task) => {
+     task.sleep(5000);//传入数字表示稍后自启动，ms
+    //  task.delay(5000); //暂停5后自启动
+},1000)
 ```
 
 ------------
@@ -122,7 +126,7 @@ alarmClock.setClock((task) => {
     start: 0,
     cycle: 1000, 
     count: Infinity,
-    manual: true, //设置闹钟手动开启下一轮循环;手动模式无法 delay / sleep
+    manual: true, //设置闹钟手动开启下一轮循环; 手动模式无法 .delay / .sleep
 })
 
 ```
@@ -143,18 +147,12 @@ In Node.js:
 let task1 = alarmClock.setClock((task) => {
     console.log('测试闹钟1');
 }, {
-    start: 0,
-    cycle: 0, 
-    count: Infinity,
     name:'testName',//
 })
 
 let task2 = alarmClock.setClock((task) => {
     console.log('测试闹钟2');
 }, {
-    start: 1000,
-    cycle: 1000, 
-    count: Infinity,
     name:'testName',//task2 的name 与task1 相同；相当于 task1.clear()
 })
 
@@ -181,7 +179,7 @@ let task1 = alarmClock.setClock((task) => {
     cycle: 0, 
     count: 3,
     groupName:'groupName',//
-    eventListener(eventName){
+    eventListener(eventName){//生命周期函数
         //eventName: created,mounted,destroyed,sleeped,notified...
     }
 })
