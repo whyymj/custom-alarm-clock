@@ -12,27 +12,27 @@ class Operation {
     notifyGroup(groupName) {
         this.notify(taskPool.getGroup(groupName))
     }
-    sleep(ids,time) {
+    sleep(ids, time) {
         this.get(ids).forEach(task => {
             task.sleep(time)
         })
     }
     sleepAll(time) {
-        this.sleep(taskPool.getAll(),time)
+        this.sleep(taskPool.getAll(), time)
     }
-    sleepGroup(groupName,time) {
-        this.sleep(taskPool.getGroup(groupName),time)
+    sleepGroup(groupName, time) {
+        this.sleep(taskPool.getGroup(groupName), time)
     }
-    delay(ids,time) {
+    delay(ids, time) {
         this.get(ids).forEach(task => {
             task.delay(time)
         })
     }
     delayAll(time) {
-        this.delay(taskPool.getAll(),time)
+        this.delay(taskPool.getAll(), time)
     }
-    delayGroup(groupName,time) {
-        this.delay(taskPool.getGroup(groupName),time)
+    delayGroup(groupName, time) {
+        this.delay(taskPool.getGroup(groupName), time)
     }
     clear(ids) {
         this.get(ids).forEach(task => {
@@ -63,16 +63,21 @@ class TaskPool extends Operation {
         super();
         let start = new Date().getTime();
         let interval = 0;
+
+        function notify(task) {
+            if (task.notifylefttime < 0) {
+                task.notifylefttime = Infinity;
+                task.notify();
+            } else {
+                task.notifylefttime -= interval;
+            }
+        }
         Timer.add(
             () => {
                 interval = new Date().getTime() - start;
                 start += interval;
                 this.forEach((task, k) => {
-                    task.notifylefttime -= interval;
-                    if(task.notifylefttime<0){
-                        task.notify();
-                        task.notifylefttime=Infinity;
-                    } 
+                    notify(task);
                     if (task.delaying) {
                         return;
                     }
@@ -91,13 +96,18 @@ class TaskPool extends Operation {
                     } else {
                         this.remove(k)
                     }
+                }, (task, k) => {
+                    notify(task);
                 })
             }
         );
     }
-    forEach(callback) {
+    forEach(callback1, callback2) {
         for (let k in this.tasks) {
-            callback(this.tasks[k], k)
+            callback1(this.tasks[k], k)
+        }
+        for (let k in this.delayProcess) {
+            callback2(this.delayProcess[k], k)
         }
     }
     add(task) {

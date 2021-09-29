@@ -205,13 +205,16 @@ alarmClock.sleepGroup('groupName');
 In Node.js:
 
 **全局Api**
-**.sleepAll / .notifyAll / .clearAll**
 
 ```js
 
 alarmClock.sleepAll();//用于睡眠全部运行中的闹钟
 alarmClock.notifyAll();//用于唤醒全部睡眠中的闹钟
 alarmClock.clearAll();//用于清除全部闹钟，释放资源
+
+alarmClock.setTimeout();//用法与原生setTimeout类似;setTimeout(callback,Number/String/Date)
+alarmClock.setInterval();//用法与原生setInterval类似;setInterval(callback,Number/Object)
+alarmClock.setClock();//
 
 ```
 
