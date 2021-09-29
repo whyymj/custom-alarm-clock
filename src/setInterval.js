@@ -1,4 +1,4 @@
-import Task from './core/task'
+import {PollingTask} from './core/task'
 import {
     getCallback,
     getOption
@@ -11,7 +11,7 @@ import {
     constructor(callback, options) {
         this.callback = getCallback(callback, this);
         this.options = getOption.call(this, options);
-        this.task = new Task(this.callback, this.options);
+        this.task = new PollingTask(this.callback, this.options);
     }
     clear() {
         this.task.clear();

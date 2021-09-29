@@ -119,7 +119,6 @@ Asynchronous operation such as ajax requestion; you can decide when start the ne
 alarmClock.setClock((task) => {
     console.log('测试闹钟', new Date());
     alarmClock.setTimeout(() => { //模拟异步操作
-        console.log('next');
         task.next(); // 下一轮循环将在next()后开启。
     }, Math.random()*2000)
 }, {
