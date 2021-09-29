@@ -12,41 +12,41 @@ class Operation {
     notifyGroup(groupName) {
         this.notify(taskPool.getGroup(groupName))
     }
-    sleep(ids) {
+    sleep(ids,time) {
         this.get(ids).forEach(task => {
-            task.sleep()
+            task.sleep(time)
         })
     }
-    sleepAll() {
-        this.sleep(taskPool.getAll())
+    sleepAll(time) {
+        this.sleep(taskPool.getAll(),time)
     }
-    sleepGroup(groupName) {
-        this.sleep(taskPool.getGroup(groupName))
+    sleepGroup(groupName,time) {
+        this.sleep(taskPool.getGroup(groupName),time)
     }
-    delay(ids) {
+    delay(ids,time) {
         this.get(ids).forEach(task => {
-            task.delay()
+            task.delay(time)
         })
     }
-    delayAll() {
-        this.delay(taskPool.getAll())
+    delayAll(time) {
+        this.delay(taskPool.getAll(),time)
     }
-    delayGroup(groupName) {
-        this.delay(taskPool.getGroup(groupName))
+    delayGroup(groupName,time) {
+        this.delay(taskPool.getGroup(groupName),time)
     }
-    stop(ids) {
+    clear(ids) {
         this.get(ids).forEach(task => {
-            task.stop()
+            task.clear()
         })
     }
-    stopAll() {
+    clearAll() {
         this.tasks = {};
         this.delayProcess = {}; //手动确认结束任务
         this.namedTasks = {};
         this.group = {};
     }
-    stopGroup(groupName) {
-        this.stop(taskPool.getGroup(groupName))
+    clearGroup(groupName) {
+        this.clear(taskPool.getGroup(groupName))
     }
     next(ids) {
         this.get(ids).forEach(task => {
@@ -68,13 +68,19 @@ class TaskPool extends Operation {
                 interval = new Date().getTime() - start;
                 start += interval;
                 this.forEach((task, k) => {
+                    task.notifylefttime -= interval;
+                    if(task.notifylefttime<0){
+                        task.notify();
+                        task.notifylefttime=Infinity;
+                    } 
                     if (task.delaying) {
                         return;
                     }
                     if (task.count > 0) {
+                        task.cyclecount++;
                         if (task.leftTime < 0) {
                             if (task.manual) {
-                                this.manualTask(task)
+                                this.manualTask(task);
                             }
                             if (start >= task.nextTime) {
                                 task.run(start);
@@ -98,12 +104,12 @@ class TaskPool extends Operation {
         if (task.name !== undefined) {
             if (this.namedTasks[task.name] !== undefined) {
                 this.get(this.namedTasks[task.name]).forEach(t => {
-                    t.stop()
+                    t.clear()
                 })
             }
             this.namedTasks[task.name] = task.id; //迎新
         }
-        if (task.status === 'destroyed'||task.status === 'beforeDestroy') {
+        if (task.status === 'destroyed' || task.status === 'beforeDestroy') {
             return
         }
         if (task.groupName !== undefined) {

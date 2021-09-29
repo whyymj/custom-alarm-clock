@@ -11,36 +11,36 @@ class ClockPolling {
         }
     }
     clearAll() {
-        taskPool.stopAll();
+        taskPool.clearAll();
     }
     clearGroup(groupName) {
-        taskPool.stopGroup(groupName);
+        taskPool.clearGroup(groupName);
     }
-    sleep(task) {
+    sleep(task,time) {
         if (typeof task == 'object') {
             if (task.sleep) {
-                task.sleep();
+                task.sleep(time);
             }
         }
     }
-    sleepAll() {
-        taskPoolk.sleepAll();
+    sleepAll(time) {
+        taskPoolk.sleepAll(time);
     }
-    sleepGroup(groupName) {
-        taskPool.sleepGroup(groupName);
+    sleepGroup(groupName,time) {
+        taskPool.sleepGroup(groupName,time);
     }
-    delay(task) {
+    delay(task,time) {
         if (typeof task == 'object') {
             if (task.delay) {
-                task.delay();
+                task.delay(time);
             }
         }
     }
-    delayAll() {
-        taskPool.delayAll();
+    delayAll(time) {
+        taskPool.delayAll(time);
     }
-    delayGroup(groupName) {
-        taskPool.delayGroup(groupName)
+    delayGroup(groupName,time) {
+        taskPool.delayGroup(groupName,time)
     }
     notify(task) {
         taskPool.notify(task)

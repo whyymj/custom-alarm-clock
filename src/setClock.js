@@ -43,7 +43,7 @@ function getDefaultOption(options) {
         if (event == 'mounted') {
             let now = new Date().getTime();
             task.leftTime = defaultOption.start - now;
-            task.nextTime = defaultOption.start;
+            task.nextTime = defaultOption.start; 
         }
         this.status = event;
     }
@@ -59,17 +59,16 @@ export default class AlarmClock {
     constructor(callback, options) {
         this.callback = getCallback(callback, this);
         this.options = getDefaultOption.call(this, options);
-        let now = new Date().getTime();
         this.task = new PollingTask(this.callback, this.options);
     }
     clear() {
-        this.task.stop();
+        this.task.clear();
     }
-    sleep() {
-        this.task.sleep();
+    sleep(time) {
+        this.task.sleep(time);
     }
-    delay() {
-        this.task.delay();
+    delay(time) {
+        this.task.delay(time);
     }
     notify() {
         this.task.notify();

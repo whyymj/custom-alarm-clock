@@ -14,13 +14,13 @@ import {
         this.task = new Task(this.callback, this.options);
     }
     clear() {
-        this.task.stop();
+        this.task.clear();
     }
-    sleep() {
-        this.task.sleep();
+    sleep(time) {
+        this.task.sleep(time);
     }
-    delay() {
-        this.task.delay();
+    delay(time) {
+        this.task.delay(time);
     }
     notify() {
         this.task.notify();
