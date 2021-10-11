@@ -219,6 +219,27 @@ alarmClock.setClock();//
 
 ------------
 
+In Node.js:
+
+**其他**
+
+```js
+//keyframes ： [百分比]：回调函数； “百分比”是指cycle的百分比，在两个 main task 之间触发；（>=1.0.6）
+alarmClock.setInterval((task) => {console.log('this is main task'}, { 
+    cycle: 10000,
+    count: 10,
+    keyframes:{//两次main task调用之间的时间点;
+        '10%':()=>{},//距离上次main task 结束1s后触发
+        '30%':()=>{},//距离上次main task 结束3s后触发//距离上次main task 结束1s后触发
+        '100%':()=>{},//本次main task执行前触发
+    }
+})
+
+
+```
+
+------------
+
 
 **All suggestions and opinions are welcome.**
 

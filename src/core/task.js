@@ -21,7 +21,7 @@ class Task {
     clearable = true; //可否stop
     name; //任务名称
     itercount = 0; //执行次数统计
-    nextthrottle=0;
+    nextthrottle = 0;
     canNextCircle = true; //NEXT操作节流
     callbacks = []; //callbacks
     yieldIdx = 0; //当前 callback index
@@ -31,7 +31,10 @@ class Task {
     groupName; //任务分组名
     eventListener = null; //任务结束后回调 ,生命周期函数 
     status = '';
-    option = null;//缓存设置项
+    option = null; //缓存设置项
+    keyframes = {};
+    microTasks = {};
+
     constructor(callback, option) {
         Task.idx++
         this.id = Task.idx;
@@ -41,10 +44,10 @@ class Task {
         if (typeof this.eventListener == 'function') {
             this.eventListener(this.status, this);
         }
-        taskPool.add(this);   
-        if(this.manual){
-            this.delayable=false;
-            this.sleepable=false;
+        taskPool.add(this);
+        if (this.manual) {
+            this.delayable = false;
+            this.sleepable = false;
         }
     }
     add(callback) {
@@ -71,7 +74,19 @@ class Task {
         } else if (typeof option === 'object') {
             let keys = ['notify', 'sleep', 'clear', 'next', 'canNextCircle', 'nextTime', 'callbacks', 'leftTime', 'constructor'];
             for (let k in option) {
-                if (option[k] !== undefined) {
+                if (k == 'keyframes' && typeof option.keyframes === 'object') {
+                    const percent = /^[0-9]+(\.\d+)?\%$/;
+                    let tmp = '';
+                    for (let key in option.keyframes) {
+                        tmp = key.replace(/\s/g, '');
+                        if (typeof option.keyframes[key] == 'function' && percent.test(tmp)) {
+                            tmp = ((1 - Math.min(parseFloat(tmp), 100) / 100) * this.cycle).toFixed(2);
+                            this.keyframes[tmp] = this.keyframes[tmp] ? this.keyframes[tmp] : [];
+                            this.keyframes[tmp].push(option.keyframes[key]);
+                        }
+                    }
+                    this.microTasks = {...this.keyframes};
+                } else if (option[k] !== undefined) {
                     if (keys.includes(k)) {
                         continue;
                     }
@@ -81,13 +96,23 @@ class Task {
         }
         this.cycle = Math.max(this.cycle, 1) || 1;
         this.leftTime = this.immediate ? 0 : this.cycle;
-     
+
         if (!this.delaying) {
             let now = new Date().getTime();
             if (this.immediate) {
                 this.nextTime = now;
             } else {
                 this.nextTime = now + this.cycle;
+            }
+        }
+    }
+    clearMicroTasks() {
+        for (let k in this.microTasks) {
+            if (this.leftTime <= k&&this.microTasks[k]) {
+                this.microTasks[k].forEach(fun => {
+                    fun()
+                })
+                delete this.microTasks[k];
             }
         }
     }
@@ -143,7 +168,7 @@ class Task {
         this.delaying = true;
     };
     next() {
-        if (this.delaying || this.sleeping || !this.manual ||this.count<1) {
+        if (this.delaying || this.sleeping || !this.manual || this.count < 1) {
             return
         }
 
@@ -151,7 +176,7 @@ class Task {
             this.canNextCircle = false;
             taskPool.autoTask(this);
             this.nextthrottle++;
-        } else if(this.nextthrottle<this.callbacks.length){
+        } else if (this.nextthrottle < this.callbacks.length) {
             this.nextthrottle++;
             this.nextStep();
         }
@@ -170,9 +195,11 @@ class Task {
         this.nextTime = this.nextTime + this.cycle * skipNum;
         this.leftTime = (this.nextTime - now);
         this.canNextCircle = true;
+        this.microTasks={...this.keyframes};
         if (!this.sleeping && !this.delaying && finishRun) {
             this.itercount++;
             this.count--;
+
         }
     };
 }
@@ -184,7 +211,7 @@ export class PollingTask extends Task {
         super(callback, option);
     }
     nextStep() {
-        if (this.leftTime > 0 ||this.sleeping || this.delaying) {
+        if (this.leftTime > 0 || this.sleeping || this.delaying) {
             return;
         }
         if (this.skip && this.skip(this)) {
@@ -200,21 +227,20 @@ export class PollingTask extends Task {
         }
     }
     run() {
-        this.status = 'running'; 
+        this.status = 'running';
         if (this.skip && this.skip(this)) {
             this.refresh(false);
             return
-        } 
-        console.log('!!!!')
-        this.nextthrottle=0;
+        }
+        this.nextthrottle = 0;
         if (!this.sleeping) {
             if (this.manual) {
                 this.nextStep();
-            } else { 
-                this.refresh(); 
+            } else {
+                this.refresh();
                 this.callbacks.forEach(fun => fun());
             }
-        }else{
+        } else {
             this.refresh();
         }
     }

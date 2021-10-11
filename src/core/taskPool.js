@@ -84,6 +84,7 @@ class TaskPool extends Operation {
                     if (task.count > 0) {
                         task.cyclecount++;
                         if (task.leftTime < 0) {
+                            task.clearMicroTasks()
                             if (task.manual) {
                                 this.manualTask(task);
                             }
@@ -92,6 +93,7 @@ class TaskPool extends Operation {
                             }
                         } else {
                             task.leftTime = task.leftTime - interval;
+                            task.clearMicroTasks()
                         }
                     } else {
                         this.remove(k)

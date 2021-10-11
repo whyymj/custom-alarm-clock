@@ -10,9 +10,15 @@ alarmClock.setTimeout((task) => {
 alarmClock.setInterval((task) => {
     console.log('test setTimeout 10000',new Date(),new Date().getTime()-now);
 }, { 
-    cycle: 1000,
+    cycle: 10000,
     count: 10,
     immediate: true,
+    keyframes:{
+        '10%':()=>console.log('10%',new Date().getTime()-now),
+        '20%':()=>console.log('20%',new Date().getTime()-now),
+        '50%':()=>console.log('50%',new Date().getTime()-now),
+        '90%':()=>console.log('90%',new Date().getTime()-now),
+    }
 })
 
 
