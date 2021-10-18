@@ -20,6 +20,7 @@ function getDefaultOption(options) {
         defaultOption = {
             ...defaultOption,
             start: options.start,
+            name:options.name
         }
     }
     return defaultOption;

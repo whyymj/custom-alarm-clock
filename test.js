@@ -1,25 +1,24 @@
 let now = new Date().getTime();
 const alarmClock = require('./dist/index.js');
-let start = '2021/9/29 18:27:00'
-alarmClock.setTimeout((task) => {
-    console.log('test setTimeout 0',new Date());
-}, start)
+// let start = '2021/9/29 18:27:00'
 // alarmClock.setTimeout((task) => {
-//     console.log('test setTimeout 1000',new Date().getTime()-now);
-// }, 1000)
-alarmClock.setInterval((task) => {
-    console.log('test setTimeout 10000',new Date(),new Date().getTime()-now);
-}, { 
-    cycle: 10000,
-    count: 10,
-    immediate: true,
-    keyframes:{
-        '10%':()=>console.log('10%',new Date().getTime()-now),
-        '20%':()=>console.log('20%',new Date().getTime()-now),
-        '50%':()=>console.log('50%',new Date().getTime()-now),
-        '90%':()=>console.log('90%',new Date().getTime()-now),
-    }
-})
+//     console.log('test setTimeout 0',new Date());
+// }, start)
+// // alarmClock.setTimeout((task) => {
+// //     console.log('test setTimeout 1000',new Date().getTime()-now);
+// // }, 1000)
+// alarmClock.setInterval((task) => {
+//     console.log('test setTimeout 10000',new Date(),new Date().getTime()-now);
+// }, { 
+//     cycle: 10000,
+//     count: 10,
+//     keyframes:{
+//         '10%':()=>console.log('10%',new Date().getTime()-now),
+//         '20%':()=>console.log('20%',new Date().getTime()-now),
+//         '50%':()=>console.log('50%',new Date().getTime()-now),
+//         '90%':()=>console.log('90%',new Date().getTime()-now),
+//     }
+// })
 
 
 // alarmClock.setDailyClock((task) => {
@@ -45,3 +44,13 @@ alarmClock.setInterval((task) => {
 //     cycle: 1000,
 //     count: 10,
 // })
+for (let i = 0; i < 10; i++) {
+    alarmClock.setInterval(() => {
+        console.log('????',i)
+    }, {
+        start: 1000,
+        name: 'test', 
+        cycle:1000,
+        count:3
+    })
+}
