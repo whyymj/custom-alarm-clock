@@ -28,29 +28,22 @@ const alarmClock = require('./dist/index.js');
 //     m:38
 // })
 // console.log(new Date())
-// // let t1 = alarmClock.setClock(() => {
-//     console.log('??')
-//     alarmClock.setClock((task) => {
-//         console.log('此时相当于使用requestAnimationFrame',new Date());
-//         task.delay(1000)
+let t1 = alarmClock.setClock(() => {
+    console.log('??')
+      
+}, {
+    start: new Date('2020/01/10 10:10:10'),
+    cycle: 1000,
+    count: Infinity,
+    immediate: true
+})
+// for (let i = 0; i < 10; i++) {
+//     alarmClock.setInterval(() => {
+//         console.log('????',i)
 //     }, {
 //         start: 1000,
-//         cycle: 1000,
-//         count: 2,
-//         name:1
+//         name: 'test', 
+//         cycle:1000,
+//         count:3
 //     })
-// }, {
-//     start: 0,
-//     cycle: 1000,
-//     count: 10,
-// })
-for (let i = 0; i < 10; i++) {
-    alarmClock.setInterval(() => {
-        console.log('????',i)
-    }, {
-        start: 1000,
-        name: 'test', 
-        cycle:1000,
-        count:3
-    })
-}
+// }
