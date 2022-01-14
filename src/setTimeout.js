@@ -19,8 +19,8 @@ function getDefaultOption(options) {
     } else if (typeof options == 'object') {
         defaultOption = {
             ...defaultOption,
-            start: options.start,
-            name:options.name
+            start: options.start||options.cycle,
+            name:options.name, 
         }
     }
     return defaultOption;

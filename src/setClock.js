@@ -59,10 +59,7 @@ export default class AlarmClock {
     constructor(callback, options) {
         this.callback = getCallback(callback, this);
         this.options = getDefaultOption.call(this, options);
-        if(this.options.immediate==true){
-            this.callback()
-            this.options.immediate = false;
-        }
+
         this.task = new PollingTask(this.callback, this.options);
     }
     clear() {
